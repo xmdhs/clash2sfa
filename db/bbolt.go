@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/xmdhs/clash2sfa/model"
@@ -28,11 +29,16 @@ func NewBBolt(path string) (*BBolt, error) {
 	return &BBolt{db: db}, nil
 }
 
+var ErrNotFind = errors.New("没找到")
+
 func (b *BBolt) GetArg(cxt context.Context, blake3 string) (model.ConvertArg, error) {
 	m := model.ConvertArg{}
 	err := b.db.View(func(tx *bbolt.Tx) error {
 		buc := tx.Bucket([]byte("arg"))
 		b := buc.Get([]byte(blake3))
+		if b == nil {
+			return ErrNotFind
+		}
 		err := json.Unmarshal(b, &m)
 		if err != nil {
 			panic(err)
