@@ -1,6 +1,7 @@
 package handle
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -12,22 +13,16 @@ import (
 func PutArg(db db.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cxt := r.Context()
-		c := r.FormValue("config")
-		sub := r.FormValue("sub")
-		if sub == "" {
+
+		arg := model.ConvertArg{}
+		err := json.NewDecoder(r.Body).Decode(&arg)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+		}
+		if arg.Sub == "" {
 			http.Error(w, "订阅链接不得为空", 400)
 			return
 		}
-		include := r.FormValue("include")
-		exclude := r.FormValue("exclude")
-
-		arg := model.ConvertArg{
-			Sub:     sub,
-			Include: include,
-			Exclude: exclude,
-			Config:  c,
-		}
-
 		s, err := service.PutArg(cxt, arg, db)
 		if err != nil {
 			http.Error(w, err.Error(), 500)

@@ -70,23 +70,24 @@
                 }
                 const u = new URL(new URL(location.href).origin)
                 u.pathname = "/put"
-                if (config.value != oldConfig) {
-                    const compressed = pako.gzip(config.value);
-                    const base64String = Base64.fromUint8Array(compressed, true)
-                    u.searchParams.set("config", base64String)
-                }
-                if (include.value != "") {
-                    u.searchParams.set("include", include.value)
-                }
-                if (exclude.value != "") {
-                    u.searchParams.set("exclude", exclude.value)
-                }
-                u.searchParams.set("sub", sub.value)
-                const url = u.toString()
-                const text = await (await fetch(url)).text()
+
+                const config = config.value != oldConfig ? config.value : ""
+
+                const text = await (await fetch(u.toString(), {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        "Sub": sub.value,
+                        "Include": include.value,
+                        "Exclude": exclude.value,
+                        "Config": config
+                    })
+                })).text()
                 const subUrl = new URL(new URL(location.href).origin)
                 subUrl.pathname = "/sub"
-                subUrl.searchParams.set("id",text)
+                subUrl.searchParams.set("id", text)
                 newsub.value = subUrl.toString()
             }
 
