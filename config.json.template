@@ -1,0 +1,116 @@
+{
+    "log": {},
+    "dns": {
+        "servers": [
+            {
+                "tag": "remote",
+                "address": "https://1.1.1.1/dns-query",
+                "detour": "select"
+            },
+            {
+                "tag": "local",
+                "address": "https://223.5.5.5/dns-query",
+                "detour": "direct"
+            }
+        ],
+        "rules": [
+            {
+                "domain": [],
+                "geosite": "cn",
+                "server": "local"
+            }
+        ],
+        "strategy": "ipv4_only"
+    },
+    "inbounds": [
+        {
+            "type": "tun",
+            "inet4_address": "172.19.0.1/30",
+            "sniff": true,
+            "sniff_override_destination": true,
+            "domain_strategy": "ipv4_only",
+            "strict_route": true,
+            "mtu": 9000,
+            "stack": "gvisor",
+            "endpoint_independent_nat": true,
+            "auto_route": true
+        },
+        {
+            "type": "socks",
+            "tag": "socks-in",
+            "listen": "127.0.0.1",
+            "sniff": true,
+            "sniff_override_destination": true,
+            "domain_strategy": "ipv4_only",
+            "listen_port": 2333,
+            "users": []
+        },
+        {
+            "type": "mixed",
+            "tag": "mixed-in",
+            "sniff": true,
+            "sniff_override_destination": true,
+            "domain_strategy": "ipv4_only",
+            "listen": "127.0.0.1",
+            "listen_port": 2334,
+            "users": []
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "direct",
+            "tag": "direct"
+        },
+        {
+            "type": "block",
+            "tag": "block"
+        },
+        {
+            "type": "dns",
+            "tag": "dns-out"
+        }
+    ],
+    "route": {
+        "rules": [
+            {
+                "geosite": "category-ads-all",
+                "outbound": "block"
+            },
+            {
+                "protocol": "dns",
+                "outbound": "dns-out"
+            },
+            {
+                "clash_mode": "direct",
+                "outbound": "direct"
+            },
+            {
+                "clash_mode": "global",
+                "outbound": "select"
+            },
+            {
+                "geoip": [
+                    "cn",
+                    "private"
+                ],
+                "outbound": "direct"
+            },
+            {
+                "geosite": "geolocation-!cn",
+                "outbound": "select"
+            },
+            {
+                "geosite": "cn",
+                "outbound": "direct"
+            }
+        ],
+        "auto_detect_interface": true
+    },
+    "experimental": {
+        "clash_api": {
+            "external_controller": "127.0.0.1:9090",
+            "store_selected": true,
+            "secret": ""
+        }
+    }
+}
