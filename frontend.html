@@ -71,7 +71,7 @@
                 const u = new URL(new URL(location.href).origin)
                 u.pathname = "/put"
 
-                const config = config.value != oldConfig ? config.value : ""
+                const c = config.value != oldConfig ? config.value : ""
 
                 const text = await (await fetch(u.toString(), {
                     method: "PUT",
@@ -82,7 +82,7 @@
                         "Sub": sub.value,
                         "Include": include.value,
                         "Exclude": exclude.value,
-                        "Config": config
+                        "Config": c
                     })
                 })).text()
                 const subUrl = new URL(new URL(location.href).origin)
