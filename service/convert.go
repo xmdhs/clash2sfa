@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/xmdhs/clash2singbox/clash"
 	"github.com/xmdhs/clash2singbox/convert"
 	"github.com/xmdhs/clash2singbox/httputils"
+	"github.com/xmdhs/clash2singbox/model/clash"
 	"gopkg.in/yaml.v3"
 )
 
