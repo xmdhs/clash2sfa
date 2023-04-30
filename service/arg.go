@@ -9,6 +9,7 @@ import (
 
 	"github.com/xmdhs/clash2sfa/db"
 	"github.com/xmdhs/clash2sfa/model"
+	"github.com/xmdhs/clash2singbox/httputils"
 	"lukechampine.com/blake3"
 )
 
@@ -31,8 +32,15 @@ func GetSub(cxt context.Context, c *http.Client, db db.DB, id string, frontendBy
 	if err != nil {
 		return nil, fmt.Errorf("GetSub: %w", err)
 	}
-	if arg.Config == "" {
+	if arg.Config == "" && arg.ConfigUrl == "" {
 		arg.Config = string(frontendByte)
+	}
+	if arg.ConfigUrl != "" {
+		b, err := httputils.HttpGet(cxt, c, arg.ConfigUrl)
+		if err != nil {
+			return nil, fmt.Errorf("GetSub: %w", err)
+		}
+		arg.Config = string(b)
 	}
 	b, err := convert2sing(cxt, c, arg.Config, arg.Sub, arg.Include, arg.Exclude)
 	if err != nil {

@@ -39,7 +39,12 @@
 
             <details>
                 <summary>配置文件模板</summary>
-                <textarea style="resize: none;height: 25em;" v-model="config"></textarea>
+                <label>
+                    <input type="checkbox" role="switch" v-model="checkbox">
+                    配置文件模板直链
+                  </label>
+                <textarea style="resize: none;height: 25em;" v-model="config" v-show="!checkbox"></textarea>
+                <input v-model="configurl" v-show="checkbox" />
             </details>
             <button @click="click">获取 sing-box 格式订阅链接</button>
             <code v-if="newsub">{{ newsub }}</code>
@@ -55,6 +60,8 @@
             const include = Vue.ref('');
             const exclude = Vue.ref('');
             const config = Vue.ref('加载中');
+            const checkbox = Vue.ref(false)
+            const configurl = Vue.ref('');
             let oldConfig = "";
 
             (async () => {
@@ -82,7 +89,8 @@
                         "Sub": sub.value,
                         "Include": include.value,
                         "Exclude": exclude.value,
-                        "Config": c
+                        "Config": c,
+                        "ConfigUrl": configurl.value
                     })
                 })).text()
                 const subUrl = new URL(new URL(location.href).origin)
@@ -97,7 +105,9 @@
                 include,
                 exclude,
                 newsub,
-                click
+                click,
+                checkbox,
+                configurl
             }
 
         },
