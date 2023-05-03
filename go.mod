@@ -3,7 +3,7 @@ module github.com/xmdhs/clash2sfa
 go 1.20
 
 require (
-	github.com/xmdhs/clash2singbox v0.0.0-20230429082733-13124158556a
+	github.com/xmdhs/clash2singbox v0.0.0-20230503082444-bae90468dfaa
 	go.etcd.io/bbolt v1.3.7
 	gopkg.in/yaml.v3 v3.0.1
 	lukechampine.com/blake3 v1.1.7
