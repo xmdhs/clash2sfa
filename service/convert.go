@@ -9,25 +9,19 @@ import (
 
 	"github.com/xmdhs/clash2singbox/convert"
 	"github.com/xmdhs/clash2singbox/httputils"
-	"github.com/xmdhs/clash2singbox/model/clash"
-	"gopkg.in/yaml.v3"
 )
 
 func convert2sing(cxt context.Context, client *http.Client, config, sub string, include, exclude string) ([]byte, error) {
-	b, err := httputils.HttpGet(cxt, client, sub)
+	c, err := httputils.GetClash(cxt, client, sub)
 	if err != nil {
 		return nil, fmt.Errorf("convert2sing: %w", err)
 	}
+
 	extTag, outs, err := getExtTag(config)
 	if err != nil {
 		return nil, fmt.Errorf("convert2sing: %w", err)
 	}
 
-	c := clash.Clash{}
-	err = yaml.Unmarshal(b, &c)
-	if err != nil {
-		return nil, fmt.Errorf("convert2sing: %w", err)
-	}
 	s, err := convert.Clash2sing(c)
 	if err != nil {
 		return nil, fmt.Errorf("convert2sing: %w", err)

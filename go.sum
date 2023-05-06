@@ -4,8 +4,8 @@ github.com/klauspost/cpuid/v2 v2.2.4 h1:acbojRNwl3o09bUq+yDCtZFc1aiwaAAxtcn8YkZX
 github.com/klauspost/cpuid/v2 v2.2.4/go.mod h1:RVVoqg1df56z8g3pUjL/3lE5UfnlrJX8tyFgg4nqhuY=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKsk=
-github.com/xmdhs/clash2singbox v0.0.0-20230503082444-bae90468dfaa h1:OaGuW7zNcJQ6gBmpAjfsqDBKg6YIPjBPes7G4VTX8fI=
-github.com/xmdhs/clash2singbox v0.0.0-20230503082444-bae90468dfaa/go.mod h1:o8BYyqbnGtrfEDL4W+Zls3uMN/YnXi1Dji0UBOgTXDM=
+github.com/xmdhs/clash2singbox v0.0.0-20230506024516-1ee1cdacb480 h1:k7HdnHFvV+aHK09vfvu1zaoX22Rr7l84mTTEy/bmzxA=
+github.com/xmdhs/clash2singbox v0.0.0-20230506024516-1ee1cdacb480/go.mod h1:o8BYyqbnGtrfEDL4W+Zls3uMN/YnXi1Dji0UBOgTXDM=
 go.etcd.io/bbolt v1.3.7 h1:j+zJOnnEjF/kyHlDDgGnVL/AIqIJPq8UoB2GSNfkUfQ=
 go.etcd.io/bbolt v1.3.7/go.mod h1:N9Mkw9X8x5fupy0IKsmuqVtoGDyxsaDlbk4Rd05IAQw=
 golang.org/x/sys v0.0.0-20220704084225-05e143d24a9e/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
