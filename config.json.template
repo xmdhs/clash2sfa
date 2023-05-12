@@ -44,7 +44,6 @@
             "domain_strategy": "ipv4_only",
             "strict_route": true,
             "mtu": 9000,
-            "stack": "gvisor",
             "endpoint_independent_nat": true,
             "auto_route": true
         },
