@@ -23,7 +23,7 @@ var configByte []byte
 var frontendByte []byte
 
 func main() {
-	port := "127.0.0.1:8080"
+	port := ":8080"
 	if p := os.Getenv("port"); p != "" {
 		port = p
 	}
