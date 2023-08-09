@@ -21,6 +21,7 @@ func PutArg(db db.DB, l *slog.Logger) http.HandlerFunc {
 		if err != nil {
 			l.DebugContext(cxt, err.Error())
 			http.Error(w, err.Error(), 400)
+			return
 		}
 		if arg.Sub == "" {
 			l.DebugContext(cxt, "订阅链接不得为空")
@@ -31,6 +32,7 @@ func PutArg(db db.DB, l *slog.Logger) http.HandlerFunc {
 		if err != nil {
 			l.WarnContext(cxt, err.Error())
 			http.Error(w, err.Error(), 500)
+			return
 		}
 		w.Write([]byte(s))
 	}
@@ -58,6 +60,7 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 		if err != nil {
 			l.WarnContext(ctx, err.Error())
 			http.Error(w, err.Error(), 500)
+			return
 		}
 		w.Write(b)
 	}
