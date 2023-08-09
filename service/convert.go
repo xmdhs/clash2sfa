@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"log/slog"
+
 	"github.com/xmdhs/clash2singbox/convert"
 	"github.com/xmdhs/clash2singbox/httputils"
 )
 
-func convert2sing(cxt context.Context, client *http.Client, config, sub string, include, exclude string) ([]byte, error) {
+func convert2sing(cxt context.Context, client *http.Client, config, sub string, include, exclude string, l *slog.Logger) ([]byte, error) {
 	c, err := httputils.GetClash(cxt, client, sub)
 	if err != nil {
 		return nil, fmt.Errorf("convert2sing: %w", err)
@@ -24,9 +26,8 @@ func convert2sing(cxt context.Context, client *http.Client, config, sub string, 
 
 	s, err := convert.Clash2sing(c)
 	if err != nil {
-		return nil, fmt.Errorf("convert2sing: %w", err)
+		l.Debug(err.Error())
 	}
-
 	nb, err := convert.Patch([]byte(config), s, include, exclude, outs, extTag...)
 	if err != nil {
 		return nil, fmt.Errorf("convert2sing: %w", err)

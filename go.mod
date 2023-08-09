@@ -1,9 +1,11 @@
 module github.com/xmdhs/clash2sfa
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require (
-	github.com/xmdhs/clash2singbox v0.0.0-20230718100113-9a8d745aa230
+	github.com/xmdhs/clash2singbox v0.0.0-20230809095527-5b13cb9233b0
 	go.etcd.io/bbolt v1.3.7
 	lukechampine.com/blake3 v1.2.1
 )

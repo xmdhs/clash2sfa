@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"log/slog"
+
 	"github.com/xmdhs/clash2sfa/db"
 	"github.com/xmdhs/clash2sfa/model"
 	"github.com/xmdhs/clash2singbox/httputils"
@@ -27,7 +29,7 @@ func PutArg(cxt context.Context, arg model.ConvertArg, db db.DB) (string, error)
 	return h, nil
 }
 
-func GetSub(cxt context.Context, c *http.Client, db db.DB, id string, frontendByte []byte) ([]byte, error) {
+func GetSub(cxt context.Context, c *http.Client, db db.DB, id string, frontendByte []byte, l *slog.Logger) ([]byte, error) {
 	arg, err := db.GetArg(cxt, id)
 	if err != nil {
 		return nil, fmt.Errorf("GetSub: %w", err)
@@ -42,7 +44,7 @@ func GetSub(cxt context.Context, c *http.Client, db db.DB, id string, frontendBy
 		}
 		arg.Config = string(b)
 	}
-	b, err := convert2sing(cxt, c, arg.Config, arg.Sub, arg.Include, arg.Exclude)
+	b, err := convert2sing(cxt, c, arg.Config, arg.Sub, arg.Include, arg.Exclude, l)
 	if err != nil {
 		return nil, fmt.Errorf("GetSub: %w", err)
 	}
