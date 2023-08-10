@@ -67,7 +67,7 @@ func main() {
 			if l.Enabled(ctx, slog.LevelDebug) {
 				ip, _ := utils.GetIP(r)
 				trackid.Add(1)
-				ctx = setCtx(ctx, reqInfo{
+				ctx = setCtx(ctx, &reqInfo{
 					URL:     r.URL.String(),
 					IP:      ip,
 					TrackId: trackid.Load(),

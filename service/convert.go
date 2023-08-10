@@ -26,7 +26,7 @@ func convert2sing(cxt context.Context, client *http.Client, config, sub string, 
 
 	s, err := convert.Clash2sing(c)
 	if err != nil {
-		l.Debug(err.Error())
+		l.DebugContext(cxt, err.Error())
 	}
 	nb, err := convert.Patch([]byte(config), s, include, exclude, outs, extTag...)
 	if err != nil {
