@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.0
 
 require (
-	github.com/xmdhs/clash2singbox v0.0.0-20230810082059-5054938e1bfd
+	github.com/xmdhs/clash2singbox v0.0.0-20230811075733-766241a38559
 	go.etcd.io/bbolt v1.3.7
 	lukechampine.com/blake3 v1.2.1
 )
