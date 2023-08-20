@@ -36,13 +36,17 @@
             <input placeholder="订阅链接，多个链接使用 | 分割" v-model="sub" />
             <input placeholder="url test 中包含的节点名（可用正则）" v-model="include" />
             <input placeholder="url test 中排除的节点名（可用正则）" v-model="exclude" />
-
+            <label for="switch">
+                <input type="checkbox" id="switch" name="switch" role="switch" v-model="saveType">
+                {{ saveTypeText }}
+            </label>
+            <br />
             <details>
                 <summary>配置文件模板</summary>
                 <label>
                     <input type="checkbox" role="switch" v-model="checkbox">
                     配置文件模板直链
-                  </label>
+                </label>
                 <textarea style="resize: none;height: 25em;" v-model="config" v-show="!checkbox"></textarea>
                 <input v-model="configurl" v-show="checkbox" />
             </details>
@@ -62,6 +66,18 @@
             const config = Vue.ref('加载中');
             const checkbox = Vue.ref(false)
             const configurl = Vue.ref('');
+            const saveType = Vue.ref(true);
+            const saveTypeText = Vue.ref('参数保存在链接内');
+
+            Vue.watch(saveType, v => {
+                if (v) {
+                    saveTypeText.value = "参数保存在链接内"
+                } else {
+                    saveTypeText.value = "参数保存在服务端"
+                }
+            })
+
+
             let oldConfig = "";
 
             (async () => {
@@ -70,11 +86,23 @@
                 oldConfig = config.value
             })();
 
-
-            async function click() {
-                if (sub.value == "") {
-                    return ""
+            function saveParameter() {
+                const subUrl = new URL(new URL(location.href).origin)
+                subUrl.pathname = "/sub"
+                const c = config.value != oldConfig ? config.value : ""
+                if (c != "") {
+                    const compressed = pako.deflate(config.value);
+                    const base64String = Base64.fromUint8Array(compressed, true)
+                    subUrl.searchParams.set("config", base64String)
                 }
+                configurl.value && subUrl.searchParams.set("configurl", configurl.value)
+                include.value && subUrl.searchParams.set("include", include.value)
+                exclude.value && subUrl.searchParams.set("exclude", exclude.value)
+                subUrl.searchParams.set("sub", sub.value)
+                newsub.value = subUrl.toString()
+            }
+
+            async function saveServer() {
                 const u = new URL(new URL(location.href).origin)
                 u.pathname = "/put"
 
@@ -99,6 +127,20 @@
                 newsub.value = subUrl.toString()
             }
 
+
+            async function click() {
+                if (sub.value == "") {
+                    return ""
+                }
+                if (saveType.value) {
+                    saveParameter()
+                } else {
+                    await saveServer()
+                }
+                await navigator.clipboard.writeText(newsub.value)
+                alert("已复制到粘贴板")
+            }
+
             return {
                 sub,
                 config,
@@ -107,7 +149,9 @@
                 newsub,
                 click,
                 checkbox,
-                configurl
+                configurl,
+                saveType,
+                saveTypeText
             }
 
         },

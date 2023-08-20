@@ -1,7 +1,11 @@
 package handle
 
 import (
+	"bytes"
+	"compress/zlib"
+	"encoding/base64"
 	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -49,14 +53,45 @@ func Frontend(frontendByte []byte, age int) http.HandlerFunc {
 func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-
 		id := r.FormValue("id")
-		if id == "" {
+		config := r.FormValue("config")
+		curl := r.FormValue("configurl")
+		sub := r.FormValue("sub")
+		include := r.FormValue("include")
+		exclude := r.FormValue("exclude")
+
+		if id == "" && sub == "" {
 			l.DebugContext(ctx, "id 不得为空")
 			http.Error(w, "id 不得为空", 400)
 			return
 		}
-		b, err := service.GetSub(r.Context(), c, db, id, frontendByte, l)
+		b, err := func() ([]byte, error) {
+			if sub != "" {
+				if config != "" {
+					b, err := base64.RawURLEncoding.DecodeString(config)
+					if err != nil {
+						return nil, err
+					}
+					r, err := zlib.NewReader(bytes.NewReader(b))
+					if err != nil {
+						return nil, err
+					}
+					b, err = io.ReadAll(r)
+					if err != nil {
+						return nil, err
+					}
+					config = string(b)
+				}
+				return service.MakeConfig(ctx, c, frontendByte, l, model.ConvertArg{
+					Sub:       sub,
+					Include:   include,
+					Exclude:   exclude,
+					Config:    config,
+					ConfigUrl: curl,
+				})
+			}
+			return service.GetSub(ctx, c, db, id, frontendByte, l)
+		}()
 		if err != nil {
 			l.WarnContext(ctx, err.Error())
 			http.Error(w, err.Error(), 500)

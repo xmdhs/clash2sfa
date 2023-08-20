@@ -34,19 +34,27 @@ func GetSub(cxt context.Context, c *http.Client, db db.DB, id string, frontendBy
 	if err != nil {
 		return nil, fmt.Errorf("GetSub: %w", err)
 	}
+	b, err := MakeConfig(cxt, c, frontendByte, l, arg)
+	if err != nil {
+		return nil, fmt.Errorf("GetSub: %w", err)
+	}
+	return b, nil
+}
+
+func MakeConfig(cxt context.Context, c *http.Client, frontendByte []byte, l *slog.Logger, arg model.ConvertArg) ([]byte, error) {
 	if arg.Config == "" && arg.ConfigUrl == "" {
 		arg.Config = string(frontendByte)
 	}
 	if arg.ConfigUrl != "" {
 		b, err := httputils.HttpGet(cxt, c, arg.ConfigUrl)
 		if err != nil {
-			return nil, fmt.Errorf("GetSub: %w", err)
+			return nil, fmt.Errorf("MakeConfig: %w", err)
 		}
 		arg.Config = string(b)
 	}
 	b, err := convert2sing(cxt, c, arg.Config, arg.Sub, arg.Include, arg.Exclude, l)
 	if err != nil {
-		return nil, fmt.Errorf("GetSub: %w", err)
+		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}
 	return b, nil
 }
