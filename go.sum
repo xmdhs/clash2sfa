@@ -1,3 +1,5 @@
+filippo.io/intermediates v0.0.0-20230818021045-f5dbec6a99ea h1:j4xi8pB16I4o1z7gXIVYLfrIPlYqJQUyeDsBhCfqVAw=
+filippo.io/intermediates v0.0.0-20230818021045-f5dbec6a99ea/go.mod h1:oFwJrtHxYeWR/Lhr/MC2TPSR+BsYpybldbpRKvSjggw=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/klauspost/cpuid/v2 v2.2.5 h1:0E5MSMDEoAulmXNFquVs//DdoomxaoTY1kUhbc/qbZg=
@@ -20,6 +22,8 @@ github.com/xmdhs/clash2singbox v0.0.0-20230820075432-7fc92d4f2f07 h1:iRMmQb/kwE3
 github.com/xmdhs/clash2singbox v0.0.0-20230820075432-7fc92d4f2f07/go.mod h1:B2zmjOtma7OqZN1E51CnkfHyEv6kfXtkTqtY+E4JyKE=
 github.com/xmdhs/clash2singbox v0.0.0-20230822155130-55cb537e8b0c h1:UgfjO9AsmiWgLdwU4LmlC6agKUYngm/cfdwg/zuIswU=
 github.com/xmdhs/clash2singbox v0.0.0-20230822155130-55cb537e8b0c/go.mod h1:B2zmjOtma7OqZN1E51CnkfHyEv6kfXtkTqtY+E4JyKE=
+github.com/xmdhs/clash2singbox v0.0.0-20230822161629-d1f4026dd481 h1:a/UX5kAr5Qad/mm3KW2HnveakV0JaRpD/GHq1cDmqK4=
+github.com/xmdhs/clash2singbox v0.0.0-20230822161629-d1f4026dd481/go.mod h1:B2zmjOtma7OqZN1E51CnkfHyEv6kfXtkTqtY+E4JyKE=
 go.etcd.io/bbolt v1.3.7 h1:j+zJOnnEjF/kyHlDDgGnVL/AIqIJPq8UoB2GSNfkUfQ=
 go.etcd.io/bbolt v1.3.7/go.mod h1:N9Mkw9X8x5fupy0IKsmuqVtoGDyxsaDlbk4Rd05IAQw=
 golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1 h1:MGwJjxBy0HJshjDNfLsYO8xppfqWlA5ZT9OhtUUhTNw=
