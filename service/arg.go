@@ -46,7 +46,7 @@ func MakeConfig(cxt context.Context, c *http.Client, frontendByte []byte, l *slo
 		arg.Config = string(frontendByte)
 	}
 	if arg.ConfigUrl != "" {
-		b, err := httputils.HttpGet(cxt, c, arg.ConfigUrl)
+		b, err := httputils.HttpGet(cxt, c, arg.ConfigUrl, 1000*1000*10)
 		if err != nil {
 			return nil, fmt.Errorf("MakeConfig: %w", err)
 		}
