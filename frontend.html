@@ -137,6 +137,14 @@
                 } else {
                     await saveServer()
                 }
+                const f = await fetch(newsub.value)
+                if (!f.ok) {
+                    const msg = await f.text()
+                    newsub.value = msg
+                    console.warn(msg)
+                    alert("错误 " + msg)
+                    return
+                }
                 await navigator.clipboard.writeText(newsub.value)
                 alert("已复制到粘贴板")
             }
