@@ -99,7 +99,7 @@
                 include.value && subUrl.searchParams.set("include", include.value)
                 exclude.value && subUrl.searchParams.set("exclude", exclude.value)
                 subUrl.searchParams.set("sub", sub.value)
-                newsub.value = subUrl.toString()
+                return subUrl.toString()
             }
 
             async function saveServer() {
@@ -124,7 +124,7 @@
                 const subUrl = new URL(new URL(location.href).origin)
                 subUrl.pathname = "/sub"
                 subUrl.searchParams.set("id", text)
-                newsub.value = subUrl.toString()
+                return subUrl.toString()
             }
 
 
@@ -132,12 +132,14 @@
                 if (sub.value == "") {
                     return ""
                 }
-                if (saveType.value) {
-                    saveParameter()
-                } else {
-                    await saveServer()
-                }
-                const f = await fetch(newsub.value)
+                const subURL = await (async () => {
+                    if (saveType.value) {
+                        return saveParameter()
+                    } else {
+                        return await saveServer()
+                    }
+                })()
+                const f = await fetch(subURL)
                 if (!f.ok) {
                     const msg = await f.text()
                     newsub.value = msg
@@ -145,7 +147,8 @@
                     alert("错误 " + msg)
                     return
                 }
-                await navigator.clipboard.writeText(newsub.value)
+                await navigator.clipboard.writeText(subURL)
+                newsub.value = subURL
                 alert("已复制到粘贴板")
             }
 
