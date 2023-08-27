@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	_ "embed"
 	"fmt"
 	"net/http"
@@ -12,7 +11,6 @@ import (
 
 	"log/slog"
 
-	"filippo.io/intermediates"
 	"github.com/xmdhs/clash2sfa/db"
 	"github.com/xmdhs/clash2sfa/handle"
 	"github.com/xmdhs/clash2sfa/utils"
@@ -44,20 +42,12 @@ func main() {
 	level := &slog.LevelVar{}
 	level.Set(slog.Level(leveln))
 
+	c := &http.Client{}
 	l := slog.New(&warpSlogHandle{
 		Handler: slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 			Level: level,
 		}),
 	})
-
-	tr := http.DefaultTransport.(*http.Transport).Clone()
-	tr.TLSClientConfig = &tls.Config{
-		InsecureSkipVerify: true,
-		VerifyConnection:   intermediates.VerifyConnection,
-	}
-	c := &http.Client{
-		Timeout: 10 * time.Second,
-	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/put", handle.PutArg(db, l))

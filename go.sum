@@ -1,5 +1,3 @@
-filippo.io/intermediates v0.0.0-20230818021045-f5dbec6a99ea h1:j4xi8pB16I4o1z7gXIVYLfrIPlYqJQUyeDsBhCfqVAw=
-filippo.io/intermediates v0.0.0-20230818021045-f5dbec6a99ea/go.mod h1:oFwJrtHxYeWR/Lhr/MC2TPSR+BsYpybldbpRKvSjggw=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/klauspost/cpuid/v2 v2.2.5 h1:0E5MSMDEoAulmXNFquVs//DdoomxaoTY1kUhbc/qbZg=
