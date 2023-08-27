@@ -6,10 +6,6 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKsk=
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
-github.com/xmdhs/clash2singbox v0.0.0-20230822161629-d1f4026dd481 h1:a/UX5kAr5Qad/mm3KW2HnveakV0JaRpD/GHq1cDmqK4=
-github.com/xmdhs/clash2singbox v0.0.0-20230822161629-d1f4026dd481/go.mod h1:B2zmjOtma7OqZN1E51CnkfHyEv6kfXtkTqtY+E4JyKE=
-github.com/xmdhs/clash2singbox v0.0.0-20230823134256-de1946fdff98 h1:WxvIwsI3XrUJFbIUdZUhDtLcpDtdXIRH8t22QMEHiLM=
-github.com/xmdhs/clash2singbox v0.0.0-20230823134256-de1946fdff98/go.mod h1:B2zmjOtma7OqZN1E51CnkfHyEv6kfXtkTqtY+E4JyKE=
 github.com/xmdhs/clash2singbox v0.0.0-20230827075945-bb6d561314bb h1:6hFccZspPyEZB5o92idN1lqhLVKIFpuWmeRO0Ma2yW4=
 github.com/xmdhs/clash2singbox v0.0.0-20230827075945-bb6d561314bb/go.mod h1:B2zmjOtma7OqZN1E51CnkfHyEv6kfXtkTqtY+E4JyKE=
 go.etcd.io/bbolt v1.3.7 h1:j+zJOnnEjF/kyHlDDgGnVL/AIqIJPq8UoB2GSNfkUfQ=
