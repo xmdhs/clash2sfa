@@ -42,7 +42,9 @@ func main() {
 	level := &slog.LevelVar{}
 	level.Set(slog.Level(leveln))
 
-	c := &http.Client{}
+	c := &http.Client{
+		Timeout: 10 * time.Second,
+	}
 	l := slog.New(&warpSlogHandle{
 		Handler: slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 			Level: level,
