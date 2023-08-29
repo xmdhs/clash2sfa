@@ -15,17 +15,17 @@
         ],
         "rules": [
             {
+                "outbound": [
+                    "any"
+                ],
+                "server": "local"
+            },
+            {
                 "clash_mode": "global",
                 "server": "remote"
             },
             {
                 "clash_mode": "direct",
-                "server": "local"
-            },
-            {
-                "outbound": [
-                    "any"
-                ],
                 "server": "local"
             },
             {
@@ -42,6 +42,7 @@
             "sniff": true,
             "sniff_override_destination": true,
             "domain_strategy": "ipv4_only",
+            "stack": "gvisor",
             "strict_route": true,
             "mtu": 9000,
             "endpoint_independent_nat": true,
