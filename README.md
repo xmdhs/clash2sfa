@@ -5,9 +5,10 @@
 环境变量 `port` 控制程序运行所在的端口，若未设置默认开放在 8080 端口。
 
 ## docker
-`docker volume create clash2sfa
-docker run -d -p 8080:8080 -v clash2sfa:/server/db ghcr.io/xmdhs/clash2sfa`
-
+```
+docker volume create clash2sfa    
+docker run -d -p 8080:8080 -v clash2sfa:/server/db ghcr.io/xmdhs/clash2sfa
+```
 ## 使用
 启动后使用浏览器访问 http://ip:port
 
