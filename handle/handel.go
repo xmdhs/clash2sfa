@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"log/slog"
 
@@ -65,6 +66,10 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 			http.Error(w, "id 不得为空", 400)
 			return
 		}
+
+		rc := http.NewResponseController(w)
+		rc.SetWriteDeadline(time.Now().Add(1 * time.Minute))
+
 		b, err := func() ([]byte, error) {
 			if sub != "" {
 				if config != "" {
