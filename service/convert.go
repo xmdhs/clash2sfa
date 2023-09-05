@@ -39,9 +39,11 @@ func convert2sing(cxt context.Context, client *http.Client, config, sub string, 
 var ErrFormat = errors.New("错误的格式")
 
 var notNeedType = map[string]struct{}{
-	"direct": {},
-	"block":  {},
-	"dns":    {},
+	"direct":   {},
+	"block":    {},
+	"dns":      {},
+	"urltest":  {},
+	"selector": {},
 }
 
 func getExtTag(config string) ([]string, []any, error) {
