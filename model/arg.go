@@ -6,4 +6,19 @@ type ConvertArg struct {
 	Exclude   string
 	Config    string
 	ConfigUrl string
+	UrlTest   []UrlTestArg
+}
+
+type UrlTestArg struct {
+	Tag       string `json:"tag"`
+	Tolerance string `json:"tolerance"`
+	Include   string `json:"include"`
+	Exclude   string `json:"exclude"`
+}
+
+type SingUrltest struct {
+	Outbounds []string `json:"outbounds"`
+	Tag       string   `json:"tag"`
+	Tolerance int      `json:"tolerance,omitempty"`
+	Type      string   `json:"type"`
 }

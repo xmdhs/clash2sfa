@@ -60,6 +60,7 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 		sub := r.FormValue("sub")
 		include := r.FormValue("include")
 		exclude := r.FormValue("exclude")
+		urltest := r.FormValue("urltest")
 
 		if id == "" && sub == "" {
 			l.DebugContext(ctx, "id 不得为空")
@@ -73,27 +74,33 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 		b, err := func() ([]byte, error) {
 			if sub != "" {
 				if config != "" {
-					b, err := base64.RawURLEncoding.DecodeString(config)
-					if err != nil {
-						return nil, err
-					}
-					r, err := zlib.NewReader(bytes.NewReader(b))
-					if err != nil {
-						return nil, err
-					}
-					b, err = io.ReadAll(r)
+					b, err := zlibDecode(config)
 					if err != nil {
 						return nil, err
 					}
 					config = string(b)
 				}
-				return service.MakeConfig(ctx, c, frontendByte, l, model.ConvertArg{
+
+				a := model.ConvertArg{
 					Sub:       sub,
 					Include:   include,
 					Exclude:   exclude,
 					Config:    config,
 					ConfigUrl: curl,
-				})
+				}
+				if urltest != "" {
+					b, err := zlibDecode(urltest)
+					if err != nil {
+						return nil, err
+					}
+					var u []model.UrlTestArg
+					err = json.Unmarshal(b, &u)
+					if err != nil {
+						return nil, err
+					}
+					a.UrlTest = u
+				}
+				return service.MakeConfig(ctx, c, frontendByte, l, a)
 			}
 			return service.GetSub(ctx, c, db, id, frontendByte, l)
 		}()
@@ -104,4 +111,20 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 		}
 		w.Write(b)
 	}
+}
+
+func zlibDecode(s string) ([]byte, error) {
+	b, err := base64.RawURLEncoding.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+	r, err := zlib.NewReader(bytes.NewReader(b))
+	if err != nil {
+		return nil, err
+	}
+	b, err = io.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }

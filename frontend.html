@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>clash 订阅链接转 sing-box</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/picocss/1.5.7/pico.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.47/vue.global.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"
         integrity="sha512-g2TeAWw5GPnX7z0Kn8nFbYfeHcvAu/tx6d6mrLe/90mkCxO+RcptyYpksUz35EO337F83bZwcmUyHiHamspkfg=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -50,6 +50,51 @@
                 <textarea style="resize: none;height: 25em;" v-model="config" v-show="!checkbox"></textarea>
                 <input v-model="configurl" v-show="checkbox" />
             </details>
+            <details>
+                <summary>自定义 urltest</summary>
+                <div class="grid">
+                    <label>
+                        tag
+                        <input type="text" placeholder="xxx分组" v-model.trim="customValue.tag" required>
+                    </label>
+                    <label>
+                        tolerance
+                        <input type="text" placeholder="50" v-model.trim="customValue.tolerance" required>
+                    </label>
+                    <label>
+                        include
+                        <input type="text" placeholder="可用正则" v-model.trim="customValue.include" required>
+                    </label>
+                    <label>
+                        exclude
+                        <input type="text" placeholder="" v-model.trim="customValue.exclude" required>
+                    </label>
+                    <label style="display: flex;flex-direction:column-reverse">
+                        <button @click="addUrlTables(customValue)" style="height: min-content;">Add</button>
+                    </label>
+                </div>
+                <table role="grid" v-show="customTables.length != 0">
+                    <thead>
+                        <tr>
+                            <th scope="col">tag</th>
+                            <th scope="col">tolerance</th>
+                            <th scope="col">include</th>
+                            <th scope="col">exclude</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(v,index) in customTables" :key="index">
+                            <th scope="row">{{ v.tag }}</th>
+                            <td>{{ v.tolerance }}</td>
+                            <td>{{ v.include }}</td>
+                            <td>{{ v.exclude }}</td>
+                            <td>
+                                <button @click="customTables.splice(index,1)" style="height: min-content;">Del</button>
+                            </td>
+                        </tr>
+                </table>
+            </details>
             <button @click="click">获取 sing-box 格式订阅链接</button>
             <code v-if="newsub">{{ newsub }}</code>
         </main>
@@ -68,6 +113,8 @@
             const configurl = Vue.ref('');
             const saveType = Vue.ref(true);
             const saveTypeText = Vue.ref('参数保存在链接内');
+            const customValue = Vue.ref({});
+            const customTables = Vue.ref([]);
 
             Vue.watch(saveType, v => {
                 if (v) {
@@ -95,6 +142,12 @@
                     const base64String = Base64.fromUint8Array(compressed, true)
                     subUrl.searchParams.set("config", base64String)
                 }
+                const ct = customTables.value.length != 0 ? JSON.stringify(customTables.value) : ""
+                if (ct != "") {
+                    const compressed = pako.deflate(ct);
+                    const base64String = Base64.fromUint8Array(compressed, true)
+                    subUrl.searchParams.set("urltest", base64String)
+                }
                 configurl.value && subUrl.searchParams.set("configurl", configurl.value)
                 include.value && subUrl.searchParams.set("include", include.value)
                 exclude.value && subUrl.searchParams.set("exclude", exclude.value)
@@ -118,7 +171,8 @@
                         "Include": include.value,
                         "Exclude": exclude.value,
                         "Config": c,
-                        "ConfigUrl": configurl.value
+                        "ConfigUrl": configurl.value,
+                        "UrlTest": customTables.value,
                     })
                 })).text()
                 const subUrl = new URL(new URL(location.href).origin)
@@ -152,6 +206,10 @@
                 alert("已复制到粘贴板")
             }
 
+            function addUrlTables(v) {
+                customTables.value.push(Object.assign({}, Vue.toRaw(v)))
+            }
+
             return {
                 sub,
                 config,
@@ -162,7 +220,10 @@
                 checkbox,
                 configurl,
                 saveType,
-                saveTypeText
+                saveTypeText,
+                customValue,
+                customTables,
+                addUrlTables
             }
 
         },
