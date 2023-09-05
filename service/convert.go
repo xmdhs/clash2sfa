@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 
 	"log/slog"
 
+	"github.com/tidwall/gjson"
 	"github.com/xmdhs/clash2singbox/convert"
 	"github.com/xmdhs/clash2singbox/httputils"
 )
@@ -19,9 +19,18 @@ func convert2sing(cxt context.Context, client *http.Client, config, sub string, 
 		return nil, fmt.Errorf("convert2sing: %w", err)
 	}
 
-	extTag, outs, err := getExtTag(config)
+	nodes, err := getExtTag(config)
 	if err != nil {
 		return nil, fmt.Errorf("convert2sing: %w", err)
+	}
+	outs := make([]any, 0, len(nodes))
+	extTag := make([]string, 0, len(nodes))
+
+	for _, v := range nodes {
+		outs = append(outs, v.node)
+		if v.nodeType != "urltest" && v.nodeType != "selector" {
+			extTag = append(extTag, v.tag)
+		}
 	}
 
 	s, err := convert.Clash2sing(c)
@@ -39,43 +48,39 @@ func convert2sing(cxt context.Context, client *http.Client, config, sub string, 
 var ErrFormat = errors.New("错误的格式")
 
 var notNeedType = map[string]struct{}{
-	"direct":   {},
-	"block":    {},
-	"dns":      {},
-	"urltest":  {},
-	"selector": {},
+	"direct": {},
+	"block":  {},
+	"dns":    {},
 }
 
-func getExtTag(config string) ([]string, []any, error) {
-	singc := map[string]interface{}{}
-	err := json.Unmarshal([]byte(config), &singc)
-	if err != nil {
-		return nil, nil, fmt.Errorf("getExtTag: %w", err)
+type extTag struct {
+	tag      string
+	node     any
+	nodeType string
+}
+
+func getExtTag(config string) ([]extTag, error) {
+	vaild := gjson.Valid(config)
+	if !vaild {
+		return nil, fmt.Errorf("getExtTag: %w", ErrFormat)
 	}
-	outs, ok := singc["outbounds"].([]interface{})
-	if !ok {
-		return nil, nil, fmt.Errorf("getExtTag: %w", ErrFormat)
+
+	outs := gjson.Get(config, "outbounds")
+	if !outs.Exists() {
+		return nil, fmt.Errorf("getExtTag: %w", ErrFormat)
 	}
-	tags := []string{}
-	anys := []any{}
-	for _, v := range outs {
-		mv, ok := v.(map[string]interface{})
-		if !ok {
-			return nil, nil, fmt.Errorf("getExtTag: %w", ErrFormat)
-		}
-		atype, ok := mv["type"].(string)
-		if !ok {
-			return nil, nil, fmt.Errorf("getExtTag: %w", ErrFormat)
-		}
-		tag, ok := mv["tag"].(string)
-		if !ok {
-			return nil, nil, fmt.Errorf("getExtTag: %w", ErrFormat)
-		}
+	nodes := []extTag{}
+	for _, v := range outs.Array() {
+		tag := v.Get("tag").String()
+		atype := v.Get("type").String()
 		if _, ok := notNeedType[atype]; ok {
 			continue
 		}
-		tags = append(tags, tag)
-		anys = append(anys, v)
+		nodes = append(nodes, extTag{
+			tag:      tag,
+			node:     v.Value(),
+			nodeType: atype,
+		})
 	}
-	return tags, anys, nil
+	return nodes, nil
 }
