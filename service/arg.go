@@ -109,16 +109,16 @@ func customUrlTest(config []byte, u []model.UrlTestArg) ([]byte, error) {
 		})
 	}
 
-	var b []byte
 	for _, v := range sl {
 		var err error
-		b, err = sjson.SetBytes(config, "outbounds.-1", v)
+		v := v
+		config, err = sjson.SetBytes(config, "outbounds.-1", v)
 		if err != nil {
 			return nil, fmt.Errorf("customUrlTest: %w", err)
 		}
 	}
 	var a any
-	lo.Must0(json.Unmarshal(b, &a))
+	lo.Must0(json.Unmarshal(config, &a))
 	bw := bytes.NewBuffer(nil)
 	jw := json.NewEncoder(bw)
 	jw.SetEscapeHTML(false)

@@ -33,6 +33,7 @@
         <main class="container">
             <p>将 clash 格式的订阅链接转换为 sing-box 的工具，转换后的链接可用于安卓版本的 <a
                     href="https://sing-box.sagernet.org/installation/clients/sfa/">SFA</a>，ios 版本的未测试。</p>
+            <p>在此页面粘贴由本工具生成的订阅链接（仅参数保存在链接内可用），可解析到下面的选项中</p>
             <input placeholder="订阅链接，多个链接使用 | 分割" v-model="sub" />
             <input placeholder="url test 中包含的节点名（可用正则）" v-model="include" />
             <input placeholder="url test 中排除的节点名（可用正则）" v-model="exclude" />
@@ -209,6 +210,45 @@
             function addUrlTables(v) {
                 customTables.value.push(Object.assign({}, Vue.toRaw(v)))
             }
+
+            document.addEventListener('paste', async (event) => {
+                const items = event.clipboardData && event.clipboardData.items;
+                for (const v of items) {
+                    if (v.kind == "file") continue
+
+                    v.getAsString(v => {
+                        try {
+                            const u = new URL(v)
+                            if (u.pathname != "/sub") {
+                                return
+                            }
+                            if (!confirm("解析粘贴的订阅链接？")) {
+                                return
+                            }
+                            const c = u.searchParams.get("config")
+                            if (c && c != "") {
+                                const d = pako.inflate(Base64.toUint8Array(c), { to: "string" });
+                                config.value = d
+                            }
+                            const ur = u.searchParams.get("urltest")
+                            if (ur && ur != "") {
+                                const d = pako.inflate(Base64.toUint8Array(ur), { to: "string" });
+                                customTables.value = JSON.parse(d)
+                            }
+                            configurl.value = u.searchParams.get("configurl") || configurl.value
+                            include.value = u.searchParams.get("include") || include.value
+                            exclude.value = u.searchParams.get("exclude") || exclude.value
+                            sub.value = u.searchParams.get("sub") || sub.value
+
+                        } catch (error) {
+                            console.log(error)
+                            return
+                        }
+                    })
+
+                }
+            });
+
 
             return {
                 sub,
