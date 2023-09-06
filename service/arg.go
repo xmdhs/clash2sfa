@@ -103,6 +103,9 @@ func customUrlTest(config []byte, u []model.UrlTestArg) ([]byte, error) {
 		if v.Type == "urltest" {
 			t, _ = lo.TryOr[int](func() (int, error) { return strconv.Atoi(v.Tolerance) }, 0)
 		}
+		if v.Type == "" {
+			v.Type = "urltest"
+		}
 		sl = append(sl, model.SingUrltest{
 			Outbounds: nt,
 			Tag:       v.Tag,
