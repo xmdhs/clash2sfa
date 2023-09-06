@@ -52,7 +52,7 @@
                 <input v-model="configurl" v-show="checkbox" />
             </details>
             <details>
-                <summary>自定义 urltest</summary>
+                <summary>自定义 urltest / selector</summary>
                 <div class="grid">
                     <label>
                         tag
@@ -70,6 +70,13 @@
                         exclude
                         <input type="text" placeholder="" v-model.trim="customValue.exclude" required>
                     </label>
+                    <label>
+                        type
+                        <select required v-model="customValue.type">
+                            <option value="urltest" selected>urltest</option>
+                            <option value="selector">selector</option>
+                        </select>
+                    </label>
                     <label style="display: flex;flex-direction:column-reverse">
                         <button @click="addUrlTables(customValue)" style="height: min-content;">Add</button>
                     </label>
@@ -81,6 +88,7 @@
                             <th scope="col">tolerance</th>
                             <th scope="col">include</th>
                             <th scope="col">exclude</th>
+                            <th scope="col">type</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
@@ -90,6 +98,7 @@
                             <td>{{ v.tolerance }}</td>
                             <td>{{ v.include }}</td>
                             <td>{{ v.exclude }}</td>
+                            <td>{{ v.type }}</td>
                             <td>
                                 <button @click="customTables.splice(index,1)" style="height: min-content;">Del</button>
                             </td>
@@ -115,7 +124,9 @@
             const configurl = Vue.ref('');
             const saveType = Vue.ref(true);
             const saveTypeText = Vue.ref('参数保存在链接内');
-            const customValue = Vue.ref({});
+            const customValue = Vue.ref({
+                type: "urltest"
+            });
             const customTables = Vue.ref([]);
             const inFetch = Vue.ref(false)
 
@@ -193,12 +204,12 @@
             }
 
 
-            function catchSome(f,onfail) {
+            function catchSome(f, onfail) {
                 const nf = async (...a) => {
                     try {
                         return await f(...a);
                     } catch (e) {
-                        if (onfail){
+                        if (onfail) {
                             onfail()
                         }
                         console.warn(e)
@@ -238,7 +249,7 @@
                 newsub.value = subURL
                 await navigator.clipboard.writeText(subURL)
                 alert("已复制到粘贴板")
-            },()=>{
+            }, () => {
                 inFetch.value = false
             })
 

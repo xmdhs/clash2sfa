@@ -14,6 +14,7 @@ type UrlTestArg struct {
 	Tolerance string `json:"tolerance"`
 	Include   string `json:"include"`
 	Exclude   string `json:"exclude"`
+	Type      string `json:"type"`
 }
 
 type SingUrltest struct {

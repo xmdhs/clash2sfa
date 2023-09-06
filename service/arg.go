@@ -99,13 +99,15 @@ func customUrlTest(config []byte, u []model.UrlTestArg) ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("customUrlTest: %w", err)
 		}
-		t, _ := lo.TryOr[int](func() (int, error) { return strconv.Atoi(v.Tolerance) }, 0)
-
+		var t int
+		if v.Type == "urltest" {
+			t, _ = lo.TryOr[int](func() (int, error) { return strconv.Atoi(v.Tolerance) }, 0)
+		}
 		sl = append(sl, model.SingUrltest{
 			Outbounds: nt,
 			Tag:       v.Tag,
 			Tolerance: t,
-			Type:      "urltest",
+			Type:      v.Type,
 		})
 	}
 
