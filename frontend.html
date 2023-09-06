@@ -96,7 +96,8 @@
                         </tr>
                 </table>
             </details>
-            <button @click="click">获取 sing-box 格式订阅链接</button>
+            <progress v-show="inFetch"></progress>
+            <button v-show="!inFetch" @click="click">获取 sing-box 格式订阅链接</button>
             <code v-if="newsub">{{ newsub }}</code>
         </main>
     </div>
@@ -116,12 +117,21 @@
             const saveTypeText = Vue.ref('参数保存在链接内');
             const customValue = Vue.ref({});
             const customTables = Vue.ref([]);
+            const inFetch = Vue.ref(false)
 
             Vue.watch(saveType, v => {
                 if (v) {
                     saveTypeText.value = "参数保存在链接内"
                 } else {
                     saveTypeText.value = "参数保存在服务端"
+                }
+            })
+
+            Vue.watch(checkbox, v => {
+                if (v) {
+                    config.value = oldConfig
+                } else {
+                    configurl.value = ""
                 }
             })
 
@@ -183,10 +193,31 @@
             }
 
 
-            async function click() {
+            function catchSome(f,onfail) {
+                const nf = async (...a) => {
+                    try {
+                        return await f(...a);
+                    } catch (e) {
+                        if (onfail){
+                            onfail()
+                        }
+                        console.warn(e)
+                        alert(String(e))
+                    }
+                }
+                return nf
+            }
+
+
+
+            const click = catchSome(async () => {
                 if (sub.value == "") {
                     return ""
                 }
+                if (inFetch.value) {
+                    return
+                }
+                inFetch.value = true
                 const subURL = await (async () => {
                     if (saveType.value) {
                         return saveParameter()
@@ -199,13 +230,17 @@
                     const msg = await f.text()
                     newsub.value = msg
                     console.warn(msg)
+                    inFetch.value = false
                     alert("错误 " + msg)
                     return
                 }
-                await navigator.clipboard.writeText(subURL)
+                inFetch.value = false
                 newsub.value = subURL
+                await navigator.clipboard.writeText(subURL)
                 alert("已复制到粘贴板")
-            }
+            },()=>{
+                inFetch.value = false
+            })
 
             function addUrlTables(v) {
                 customTables.value.push(Object.assign({}, Vue.toRaw(v)))
@@ -235,7 +270,14 @@
                                 const d = pako.inflate(Base64.toUint8Array(ur), { to: "string" });
                                 customTables.value = JSON.parse(d)
                             }
-                            configurl.value = u.searchParams.get("configurl") || configurl.value
+                            const cu = u.searchParams.get("configurl")
+                            if (cu && cu != "") {
+                                configurl.value = cu
+                                checkbox.value = true
+                                config.value = oldConfig
+                            } else {
+                                configurl.value = ""
+                            }
                             include.value = u.searchParams.get("include") || include.value
                             exclude.value = u.searchParams.get("exclude") || exclude.value
                             sub.value = u.searchParams.get("sub") || sub.value
@@ -263,7 +305,8 @@
                 saveTypeText,
                 customValue,
                 customTables,
-                addUrlTables
+                addUrlTables,
+                inFetch
             }
 
         },
