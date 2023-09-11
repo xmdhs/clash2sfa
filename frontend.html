@@ -11,6 +11,7 @@
         integrity="sha512-g2TeAWw5GPnX7z0Kn8nFbYfeHcvAu/tx6d6mrLe/90mkCxO+RcptyYpksUz35EO337F83bZwcmUyHiHamspkfg=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.5/base64.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js"></script>
     <style type="text/css">
         header {
             border-bottom: 1px solid #e5e5e5;
@@ -107,7 +108,7 @@
             </details>
             <progress v-show="inFetch"></progress>
             <button v-show="!inFetch" @click="click">获取 sing-box 格式订阅链接</button>
-            <code v-if="newsub">{{ newsub }}</code>
+            <code ref="codeRef" v-if="newsub">{{ newsub }}</code>
         </main>
     </div>
 </body>
@@ -129,6 +130,7 @@
             });
             const customTables = Vue.ref([]);
             const inFetch = Vue.ref(false)
+            const codeRef = Vue.ref(null)
 
             Vue.watch(saveType, v => {
                 if (v) {
@@ -247,8 +249,14 @@
                 }
                 inFetch.value = false
                 newsub.value = subURL
-                await navigator.clipboard.writeText(subURL)
-                alert("已复制到粘贴板")
+                await Vue.nextTick()
+                codeRef.value.scrollIntoView()
+                try {
+                    await navigator.clipboard.writeText(subURL)
+                    alert("已复制到粘贴板")
+                } catch (e) {
+                    console.warn(e)
+                }
             }, () => {
                 inFetch.value = false
             })
@@ -317,7 +325,8 @@
                 customValue,
                 customTables,
                 addUrlTables,
-                inFetch
+                inFetch,
+                codeRef
             }
 
         },
