@@ -250,7 +250,7 @@
                 inFetch.value = false
                 newsub.value = subURL
                 await Vue.nextTick()
-                codeRef.value.scrollIntoView()
+                codeRef.value.scrollIntoView({ behavior: "smooth" })
                 try {
                     await navigator.clipboard.writeText(subURL)
                     alert("已复制到粘贴板")
