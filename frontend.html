@@ -108,7 +108,7 @@
             </details>
             <progress v-show="inFetch"></progress>
             <button v-show="!inFetch" @click="click">获取 sing-box 格式订阅链接</button>
-            <code ref="codeRef" v-if="newsub">{{ newsub }}</code>
+            <input type="text" ref="inputRef" v-if="newsub" placeholder="可用正则" v-model="newsub">
         </main>
     </div>
 </body>
@@ -130,7 +130,7 @@
             });
             const customTables = Vue.ref([]);
             const inFetch = Vue.ref(false)
-            const codeRef = Vue.ref(null)
+            const inputRef = Vue.ref(null)
 
             Vue.watch(saveType, v => {
                 if (v) {
@@ -230,6 +230,7 @@
                 if (inFetch.value) {
                     return
                 }
+                newsub.value = ""
                 inFetch.value = true
                 const subURL = await (async () => {
                     if (saveType.value) {
@@ -250,13 +251,10 @@
                 inFetch.value = false
                 newsub.value = subURL
                 await Vue.nextTick()
-                codeRef.value.scrollIntoView({ behavior: "smooth" })
-                try {
-                    await navigator.clipboard.writeText(subURL)
-                    alert("已复制到粘贴板")
-                } catch (e) {
-                    console.warn(e)
-                }
+                inputRef.value.scrollIntoView({ behavior: "smooth" })
+                inputRef.value.select()
+                document.execCommand('copy', true);
+                alert("已复制到粘贴板")
             }, () => {
                 inFetch.value = false
             })
@@ -326,7 +324,7 @@
                 customTables,
                 addUrlTables,
                 inFetch,
-                codeRef
+                inputRef
             }
 
         },
