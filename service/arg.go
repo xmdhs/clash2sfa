@@ -59,7 +59,7 @@ func MakeConfig(cxt context.Context, c *http.Client, frontendByte []byte, l *slo
 		}
 		arg.Config = string(b)
 	}
-	b, err := convert2sing(cxt, c, arg.Config, arg.Sub, arg.Include, arg.Exclude, l)
+	b, err := convert2sing(cxt, c, arg.Config, arg.Sub, arg.Include, arg.Exclude, arg.AddTag, l)
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}

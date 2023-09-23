@@ -36,79 +36,90 @@
                     href="https://sing-box.sagernet.org/installation/clients/sfa/">SFA</a>，ios 版本的未测试。</p>
             <p>在此页面粘贴由本工具生成的订阅链接（仅参数保存在链接内可用），可解析到下面的选项中</p>
             <input placeholder="订阅链接，多个链接使用 | 分割" v-model="sub" />
-            <input placeholder="url test 中包含的节点名（可用正则）" v-model="include" />
-            <input placeholder="url test 中排除的节点名（可用正则）" v-model="exclude" />
+            <div class="grid">
+                <input placeholder="url test 中包含的节点名（可用正则）" v-model="include" />
+                <input placeholder="url test 中排除的节点名（可用正则）" v-model="exclude" />
+            </div>
             <label for="switch">
                 <input type="checkbox" id="switch" name="switch" role="switch" v-model="saveType">
                 {{ saveTypeText }}
             </label>
+            <label for="addTag">
+                <input type="checkbox" id="addTag" role="switch" v-model="addTag">
+                生成的节点中添加订阅地址的域名，用以区分不同订阅的节点
+            </label>
             <br />
             <details>
-                <summary>配置文件模板</summary>
-                <label>
-                    <input type="checkbox" role="switch" v-model="checkbox">
-                    配置文件模板直链
-                </label>
-                <textarea style="resize: none;height: 25em;" v-model="config" v-show="!checkbox"></textarea>
-                <input v-model="configurl" v-show="checkbox" />
-            </details>
-            <details>
-                <summary>自定义 urltest / selector</summary>
-                <div class="grid">
+                <summary>更多设置</summary>
+                <br />
+                <details>
+                    <summary>配置文件模板</summary>
                     <label>
-                        tag
-                        <input type="text" placeholder="xxx分组" v-model.trim="customValue.tag" required>
+                        <input type="checkbox" role="switch" v-model="checkbox">
+                        配置文件模板直链
                     </label>
-                    <label>
-                        tolerance
-                        <input type="text" placeholder="50" v-model.trim="customValue.tolerance" required>
-                    </label>
-                    <label>
-                        include
-                        <input type="text" placeholder="可用正则" v-model.trim="customValue.include" required>
-                    </label>
-                    <label>
-                        exclude
-                        <input type="text" placeholder="" v-model.trim="customValue.exclude" required>
-                    </label>
-                    <label>
-                        type
-                        <select required v-model="customValue.type">
-                            <option value="urltest" selected>urltest</option>
-                            <option value="selector">selector</option>
-                        </select>
-                    </label>
-                    <label style="display: flex;flex-direction:column-reverse">
-                        <button @click="addUrlTables(customValue)" style="height: min-content;">Add</button>
-                    </label>
-                </div>
-                <table role="grid" v-show="customTables.length != 0">
-                    <thead>
-                        <tr>
-                            <th scope="col">tag</th>
-                            <th scope="col">tolerance</th>
-                            <th scope="col">include</th>
-                            <th scope="col">exclude</th>
-                            <th scope="col">type</th>
-                            <th scope="col"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(v,index) in customTables" :key="index">
-                            <th scope="row">{{ v.tag }}</th>
-                            <td>{{ v.tolerance }}</td>
-                            <td>{{ v.include }}</td>
-                            <td>{{ v.exclude }}</td>
-                            <td>{{ v.type }}</td>
-                            <td>
-                                <button @click="customTables.splice(index,1)" style="height: min-content;">Del</button>
-                            </td>
-                        </tr>
-                </table>
+                    <textarea style="resize: none;height: 25em;" v-model="config" v-show="!checkbox"></textarea>
+                    <input v-model="configurl" v-show="checkbox" />
+                </details>
+                <details>
+                    <summary>自定义 urltest / selector</summary>
+                    <div class="grid">
+                        <label>
+                            tag
+                            <input type="text" placeholder="xxx分组" v-model.trim="customValue.tag" required>
+                        </label>
+                        <label>
+                            tolerance
+                            <input type="text" placeholder="50" v-model.trim="customValue.tolerance" required>
+                        </label>
+                        <label>
+                            include
+                            <input type="text" placeholder="可用正则" v-model.trim="customValue.include" required>
+                        </label>
+                        <label>
+                            exclude
+                            <input type="text" placeholder="" v-model.trim="customValue.exclude" required>
+                        </label>
+                        <label>
+                            type
+                            <select required v-model="customValue.type">
+                                <option value="urltest" selected>urltest</option>
+                                <option value="selector">selector</option>
+                            </select>
+                        </label>
+                        <label style="display: flex;flex-direction:column-reverse">
+                            <button @click="addUrlTables(customValue)" style="height: min-content;">Add</button>
+                        </label>
+                    </div>
+                    <table role="grid" v-show="customTables.length != 0">
+                        <thead>
+                            <tr>
+                                <th scope="col">tag</th>
+                                <th scope="col">tolerance</th>
+                                <th scope="col">include</th>
+                                <th scope="col">exclude</th>
+                                <th scope="col">type</th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(v,index) in customTables" :key="index">
+                                <th scope="row">{{ v.tag }}</th>
+                                <td>{{ v.tolerance }}</td>
+                                <td>{{ v.include }}</td>
+                                <td>{{ v.exclude }}</td>
+                                <td>{{ v.type }}</td>
+                                <td>
+                                    <button @click="customTables.splice(index,1)"
+                                        style="height: min-content;">Del</button>
+                                </td>
+                            </tr>
+                    </table>
+                </details>
             </details>
             <progress v-show="inFetch"></progress>
             <button v-show="!inFetch" @click="click">获取 sing-box 格式订阅链接</button>
-            <input type="text" ref="inputRef" v-if="newsub" placeholder="可用正则" v-model="newsub">
+            <input type="text" ref="inputRef" v-if="newsub" placeholder="" v-model="newsub">
         </main>
     </div>
 </body>
@@ -131,6 +142,7 @@
             const customTables = Vue.ref([]);
             const inFetch = Vue.ref(false)
             const inputRef = Vue.ref(null)
+            const addTag = Vue.ref(false)
 
             Vue.watch(saveType, v => {
                 if (v) {
@@ -175,6 +187,7 @@
                 configurl.value && subUrl.searchParams.set("configurl", configurl.value)
                 include.value && subUrl.searchParams.set("include", include.value)
                 exclude.value && subUrl.searchParams.set("exclude", exclude.value)
+                addTag.value && subUrl.searchParams.set("addTag", "true")
                 subUrl.searchParams.set("sub", sub.value)
                 return subUrl.toString()
             }
@@ -197,6 +210,7 @@
                         "Config": c,
                         "ConfigUrl": configurl.value,
                         "UrlTest": customTables.value,
+                        "AddTag": addTag.value,
                     })
                 })).text()
                 const subUrl = new URL(new URL(location.href).origin)
@@ -298,7 +312,7 @@
                             include.value = u.searchParams.get("include") || include.value
                             exclude.value = u.searchParams.get("exclude") || exclude.value
                             sub.value = u.searchParams.get("sub") || sub.value
-
+                            addTag.value = u.searchParams.get("addTag") === "true"
                         } catch (error) {
                             console.log(error)
                             return
@@ -324,7 +338,8 @@
                 customTables,
                 addUrlTables,
                 inFetch,
-                inputRef
+                inputRef,
+                addTag
             }
 
         },

@@ -6,6 +6,7 @@ type ConvertArg struct {
 	Exclude   string
 	Config    string
 	ConfigUrl string
+	AddTag    bool
 	UrlTest   []UrlTestArg
 }
 

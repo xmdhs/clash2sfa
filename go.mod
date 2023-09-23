@@ -2,13 +2,11 @@ module github.com/xmdhs/clash2sfa
 
 go 1.21
 
-toolchain go1.21.0
-
 require (
 	github.com/samber/lo v1.38.1
-	github.com/tidwall/gjson v1.16.0
+	github.com/tidwall/gjson v1.17.0
 	github.com/tidwall/sjson v1.2.5
-	github.com/xmdhs/clash2singbox v0.0.0-20230906141725-5eb3ac39d572
+	github.com/xmdhs/clash2singbox v0.0.0-20230923074746-2ac2b5c4eda1
 	go.etcd.io/bbolt v1.3.7
 	lukechampine.com/blake3 v1.2.1
 )

@@ -61,11 +61,16 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 		include := r.FormValue("include")
 		exclude := r.FormValue("exclude")
 		urltest := r.FormValue("urltest")
+		addTag := r.FormValue("addTag")
+		addTagb := false
 
 		if id == "" && sub == "" {
 			l.DebugContext(ctx, "id 不得为空")
 			http.Error(w, "id 不得为空", 400)
 			return
+		}
+		if addTag == "true" {
+			addTagb = true
 		}
 
 		rc := http.NewResponseController(w)
@@ -87,6 +92,8 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 					Exclude:   exclude,
 					Config:    config,
 					ConfigUrl: curl,
+					AddTag:    addTagb,
+					UrlTest:   []model.UrlTestArg{},
 				}
 				if urltest != "" {
 					b, err := zlibDecode(urltest)

@@ -13,8 +13,8 @@ import (
 	"github.com/xmdhs/clash2singbox/httputils"
 )
 
-func convert2sing(cxt context.Context, client *http.Client, config, sub string, include, exclude string, l *slog.Logger) ([]byte, error) {
-	c, err := httputils.GetClash(cxt, client, sub)
+func convert2sing(cxt context.Context, client *http.Client, config, sub string, include, exclude string, addTag bool, l *slog.Logger) ([]byte, error) {
+	c, err := httputils.GetClash(cxt, client, sub, addTag)
 	if err != nil {
 		return nil, fmt.Errorf("convert2sing: %w", err)
 	}
