@@ -5,6 +5,7 @@
             {
                 "tag": "remote",
                 "address": "https://1.1.1.1/dns-query",
+                "strategy": "ipv4_only",
                 "detour": "select"
             },
             {
@@ -43,8 +44,7 @@
                 "geosite": "cn",
                 "server": "local"
             }
-        ],
-        "strategy": "prefer_ipv4"
+        ]
     },
     "inbounds": [
         {
@@ -52,9 +52,6 @@
             "inet4_address": "172.19.0.1/30",
             "inet6_address": "2001:0470:f9da:fdfa::1/64",
             "sniff": true,
-            "sniff_override_destination": true,
-            "domain_strategy": "prefer_ipv4",
-            "stack": "system",
             "strict_route": true,
             "mtu": 9000,
             "endpoint_independent_nat": true,
@@ -65,8 +62,7 @@
             "tag": "socks-in",
             "listen": "127.0.0.1",
             "sniff": true,
-            "sniff_override_destination": true,
-            "domain_strategy": "prefer_ipv4",
+            "domain_strategy": "ipv4_only",
             "listen_port": 2333,
             "users": []
         },
@@ -74,8 +70,7 @@
             "type": "mixed",
             "tag": "mixed-in",
             "sniff": true,
-            "sniff_override_destination": true,
-            "domain_strategy": "prefer_ipv4",
+            "domain_strategy": "ipv4_only",
             "listen": "127.0.0.1",
             "listen_port": 2334,
             "users": []
