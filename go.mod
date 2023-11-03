@@ -6,7 +6,7 @@ require (
 	github.com/samber/lo v1.38.1
 	github.com/tidwall/gjson v1.17.0
 	github.com/tidwall/sjson v1.2.5
-	github.com/xmdhs/clash2singbox v0.0.2-0.20231002081500-aed7ac734ca6
+	github.com/xmdhs/clash2singbox v0.0.2-0.20231103093306-ac42daec4a48
 	go.etcd.io/bbolt v1.3.7
 	lukechampine.com/blake3 v1.2.1
 )
