@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"log/slog"
 
@@ -70,6 +71,10 @@ func MakeConfig(cxt context.Context, c *http.Client, frontendByte []byte, l *slo
 		}
 		b = nb
 	}
+	b, err = configUrlTestParser(b)
+	if err != nil {
+		return nil, fmt.Errorf("MakeConfig: %w", err)
+	}
 	return b, nil
 }
 
@@ -91,11 +96,7 @@ func customUrlTest(config []byte, u []model.UrlTestArg) ([]byte, error) {
 	})
 
 	for _, v := range u {
-		nt, err := filter(v.Include, tags, true)
-		if err != nil {
-			return nil, fmt.Errorf("customUrlTest: %w", err)
-		}
-		nt, err = filter(v.Exclude, nt, false)
+		nt, err := filterTags(tags, v.Include, v.Exclude)
 		if err != nil {
 			return nil, fmt.Errorf("customUrlTest: %w", err)
 		}
@@ -122,6 +123,10 @@ func customUrlTest(config []byte, u []model.UrlTestArg) ([]byte, error) {
 			return nil, fmt.Errorf("customUrlTest: %w", err)
 		}
 	}
+	return jsonFormatting(config), nil
+}
+
+func jsonFormatting(config []byte) []byte {
 	var a any
 	lo.Must0(json.Unmarshal(config, &a))
 	bw := bytes.NewBuffer(nil)
@@ -129,7 +134,19 @@ func customUrlTest(config []byte, u []model.UrlTestArg) ([]byte, error) {
 	jw.SetEscapeHTML(false)
 	jw.SetIndent("", "    ")
 	lo.Must0(jw.Encode(a))
-	return bw.Bytes(), nil
+	return bw.Bytes()
+}
+
+func filterTags(tags []string, include, exclude string) ([]string, error) {
+	nt, err := filter(include, tags, true)
+	if err != nil {
+		return nil, fmt.Errorf("filterTags: %w", err)
+	}
+	nt, err = filter(exclude, nt, false)
+	if err != nil {
+		return nil, fmt.Errorf("filterTags: %w", err)
+	}
+	return nt, nil
 }
 
 func filter(reg string, tags []string, need bool) ([]string, error) {
@@ -145,4 +162,75 @@ func filter(reg string, tags []string, need bool) ([]string, error) {
 		return has == need
 	})
 	return tag, nil
+}
+
+func configUrlTestParser(config []byte) ([]byte, error) {
+	r := gjson.GetBytes(config, `outbounds.#(outbounds)#`)
+	if !r.Exists() {
+		return nil, fmt.Errorf("customUrlTest: %w", ErrJson)
+	}
+	setMap := map[string][]string{}
+
+	tags := []string{}
+	gjson.GetBytes(config, `outbounds.#(tag=="urltest").outbounds`).ForEach(func(key, value gjson.Result) bool {
+		tags = append(tags, value.String())
+		return true
+	})
+
+	for _, value := range r.Array() {
+		tl, err := urlTestParser(value, tags)
+		if err != nil {
+			return nil, fmt.Errorf("customUrlTest: %w", err)
+		}
+		if tl == nil {
+			continue
+		}
+		tagName := value.Get("tag").String()
+		setMap[tagName] = tl
+	}
+
+	if len(setMap) == 0 {
+		return config, nil
+	}
+
+	for k, v := range setMap {
+		b, err := json.Marshal(k)
+		if err != nil {
+			return nil, fmt.Errorf("customUrlTest: %w", err)
+		}
+		config, err = sjson.SetBytes(config, `outbounds.#(tag==`+string(b)+`).outbounds`, v)
+		if err != nil {
+			return nil, fmt.Errorf("customUrlTest: %w", err)
+		}
+	}
+	return jsonFormatting(config), nil
+}
+
+func urlTestParser(value gjson.Result, tags []string) ([]string, error) {
+	out := value.Get("outbounds")
+	var include, exclude string
+	extTag := []string{}
+
+	out.ForEach(func(key, value gjson.Result) bool {
+		s := value.String()
+		if strings.HasPrefix(s, "include: ") {
+			include = strings.TrimPrefix(s, "include: ")
+		} else if strings.HasPrefix(s, "exclude: ") {
+			exclude = strings.TrimPrefix(s, "exclude: ")
+		} else {
+			extTag = append(extTag, s)
+		}
+		return true
+	})
+
+	if include == "" && exclude == "" {
+		return nil, nil
+	}
+
+	tags, err := filterTags(tags, include, exclude)
+	if err != nil {
+		return nil, fmt.Errorf("urlTestParser: %w", err)
+	}
+
+	return lo.Union(append(tags, extTag...)), nil
 }

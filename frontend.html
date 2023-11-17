@@ -51,9 +51,22 @@
             <br />
             <details>
                 <summary>更多设置</summary>
-                <br />
+                <hr />
                 <details>
                     <summary>配置文件模板</summary>
+                    <hr />
+                    <span>可通过设置 urltest / selector 的 outbounds，来自定义生成配置文件后其中包含的节点。</span>
+                    <span>类似：</span>
+                    <pre>{
+    "tag": "selector",
+    "type": "selector",
+    "outbounds": [
+        "include: 新加坡",
+        "exclude: 香港"
+    ]
+}</pre>
+                    <span>均可以使用正则筛选</span>
+                    <br />
                     <label>
                         <input type="checkbox" role="switch" v-model="checkbox">
                         配置文件模板直链
@@ -63,6 +76,7 @@
                 </details>
                 <details>
                     <summary>自定义 urltest / selector</summary>
+                    <hr />
                     <div class="grid">
                         <label>
                             tag
