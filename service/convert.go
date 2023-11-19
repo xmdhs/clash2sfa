@@ -14,7 +14,7 @@ import (
 )
 
 func convert2sing(cxt context.Context, client *http.Client, config, sub string, include, exclude string, addTag bool, l *slog.Logger) ([]byte, error) {
-	c, err := httputils.GetClash(cxt, client, sub, addTag)
+	c, singList, tags, err := httputils.GetAny(cxt, client, sub, addTag)
 	if err != nil {
 		return nil, fmt.Errorf("convert2sing: %w", err)
 	}
@@ -23,8 +23,8 @@ func convert2sing(cxt context.Context, client *http.Client, config, sub string, 
 	if err != nil {
 		return nil, fmt.Errorf("convert2sing: %w", err)
 	}
-	outs := make([]any, 0, len(nodes))
-	extTag := make([]string, 0, len(nodes))
+	outs := make([]any, 0, len(nodes)+len(singList))
+	extTag := make([]string, 0, len(nodes)+len(tags))
 
 	for _, v := range nodes {
 		outs = append(outs, v.node)
@@ -37,6 +37,8 @@ func convert2sing(cxt context.Context, client *http.Client, config, sub string, 
 	if err != nil {
 		l.DebugContext(cxt, err.Error())
 	}
+	outs = append(outs, singList...)
+	extTag = append(extTag, tags...)
 	nb, err := convert.Patch([]byte(config), s, include, exclude, outs, extTag...)
 	if err != nil {
 		return nil, fmt.Errorf("convert2sing: %w", err)
