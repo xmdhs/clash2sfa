@@ -232,5 +232,5 @@ func urlTestParser(value gjson.Result, tags []string) ([]string, error) {
 		return nil, fmt.Errorf("urlTestParser: %w", err)
 	}
 
-	return lo.Union(append(tags, extTag...)), nil
+	return lo.Union(append(extTag, tags...)), nil
 }
