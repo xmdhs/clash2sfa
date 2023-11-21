@@ -13,15 +13,16 @@ import (
 	"github.com/xmdhs/clash2singbox/httputils"
 )
 
-func convert2sing(cxt context.Context, client *http.Client, config, sub string, include, exclude string, addTag bool, l *slog.Logger) ([]byte, error) {
+func convert2sing(cxt context.Context, client *http.Client, config,
+	sub string, include, exclude string, addTag bool, l *slog.Logger, urlTestOut bool) (map[string]any, []string, error) {
 	c, singList, tags, err := httputils.GetAny(cxt, client, sub, addTag)
 	if err != nil {
-		return nil, fmt.Errorf("convert2sing: %w", err)
+		return nil, nil, fmt.Errorf("convert2sing: %w", err)
 	}
 
 	nodes, err := getExtTag(config)
 	if err != nil {
-		return nil, fmt.Errorf("convert2sing: %w", err)
+		return nil, nil, fmt.Errorf("convert2sing: %w", err)
 	}
 	outs := make([]any, 0, len(nodes)+len(singList))
 	extTag := make([]string, 0, len(nodes)+len(tags))
@@ -39,11 +40,18 @@ func convert2sing(cxt context.Context, client *http.Client, config, sub string, 
 	}
 	outs = append(outs, singList...)
 	extTag = append(extTag, tags...)
-	nb, err := convert.Patch([]byte(config), s, include, exclude, outs, extTag...)
+	nb, err := convert.PatchMap([]byte(config), s, include, exclude, outs, extTag, urlTestOut)
 	if err != nil {
-		return nil, fmt.Errorf("convert2sing: %w", err)
+		return nil, nil, fmt.Errorf("convert2sing: %w", err)
 	}
-	return nb, nil
+	nodeTag := make([]string, 0, len(s)+len(extTag))
+
+	for _, v := range s {
+		nodeTag = append(nodeTag, v.Tag)
+	}
+	nodeTag = append(nodeTag, extTag...)
+
+	return nb, nodeTag, nil
 
 }
 

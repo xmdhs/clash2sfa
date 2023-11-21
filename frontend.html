@@ -71,6 +71,10 @@
                         <input type="checkbox" role="switch" v-model="checkbox">
                         配置文件模板直链
                     </label>
+                    <label>
+                        <input type="checkbox" role="switch" v-model="disableUrlTest">
+                        禁用默认生成的 urltest 和 selector
+                    </label>        
                     <textarea style="resize: none;height: 25em;" v-model="config" v-show="!checkbox"></textarea>
                     <input v-model="configurl" v-show="checkbox" />
                 </details>
@@ -157,6 +161,7 @@
             const inFetch = Vue.ref(false)
             const inputRef = Vue.ref(null)
             const addTag = Vue.ref(false)
+            const disableUrlTest = Vue.ref(false)
 
             Vue.watch(saveType, v => {
                 if (v) {
@@ -202,6 +207,7 @@
                 include.value && subUrl.searchParams.set("include", include.value)
                 exclude.value && subUrl.searchParams.set("exclude", exclude.value)
                 addTag.value && subUrl.searchParams.set("addTag", "true")
+                disableUrlTest.value && subUrl.searchParams.set("disableUrlTest", "true")
                 subUrl.searchParams.set("sub", sub.value)
                 return subUrl.toString()
             }
@@ -225,6 +231,7 @@
                         "ConfigUrl": configurl.value,
                         "UrlTest": customTables.value,
                         "AddTag": addTag.value,
+                        "DisableUrlTest": disableUrlTest.value
                     })
                 })).text()
                 const subUrl = new URL(new URL(location.href).origin)
@@ -327,6 +334,7 @@
                             exclude.value = u.searchParams.get("exclude") || exclude.value
                             sub.value = u.searchParams.get("sub") || sub.value
                             addTag.value = u.searchParams.get("addTag") === "true"
+                            disableUrlTest.value = u.searchParams.get("disableUrlTest") === "true"
                         } catch (error) {
                             console.log(error)
                             return
@@ -353,7 +361,8 @@
                 addUrlTables,
                 inFetch,
                 inputRef,
-                addTag
+                addTag,
+                disableUrlTest
             }
 
         },

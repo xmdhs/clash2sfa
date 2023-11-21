@@ -15,10 +15,9 @@ import (
 	"log/slog"
 
 	"github.com/samber/lo"
-	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 	"github.com/xmdhs/clash2sfa/db"
 	"github.com/xmdhs/clash2sfa/model"
+	"github.com/xmdhs/clash2sfa/utils"
 	"github.com/xmdhs/clash2singbox/httputils"
 	"lukechampine.com/blake3"
 )
@@ -60,40 +59,37 @@ func MakeConfig(cxt context.Context, c *http.Client, frontendByte []byte, l *slo
 		}
 		arg.Config = string(b)
 	}
-	b, err := convert2sing(cxt, c, arg.Config, arg.Sub, arg.Include, arg.Exclude, arg.AddTag, l)
+	m, nodeTag, err := convert2sing(cxt, c, arg.Config, arg.Sub, arg.Include, arg.Exclude, arg.AddTag, l, !arg.DisableUrlTest)
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}
 	if len(arg.UrlTest) != 0 {
-		nb, err := customUrlTest(b, arg.UrlTest)
+		nb, err := customUrlTest(m, arg.UrlTest, nodeTag)
 		if err != nil {
 			return nil, fmt.Errorf("MakeConfig: %w", err)
 		}
-		b = nb
+		m = nb
 	}
-	b, err = configUrlTestParser(b)
+	m, err = configUrlTestParser(m, nodeTag)
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}
-	return b, nil
+	bw := &bytes.Buffer{}
+	jw := json.NewEncoder(bw)
+	jw.SetIndent("", "    ")
+	err = jw.Encode(m)
+	if err != nil {
+		return nil, fmt.Errorf("MakeConfig: %w", err)
+	}
+	return bw.Bytes(), nil
 }
 
 var (
 	ErrJson = errors.New("错误的 json")
 )
 
-func customUrlTest(config []byte, u []model.UrlTestArg) ([]byte, error) {
-	r := gjson.GetBytes(config, `outbounds.#(tag=="urltest").outbounds`)
-	if !r.Exists() {
-		return nil, fmt.Errorf("customUrlTest: %w", ErrJson)
-	}
+func customUrlTest(config map[string]any, u []model.UrlTestArg, tags []string) (map[string]any, error) {
 	sl := []model.SingUrltest{}
-
-	tags := []string{}
-	r.ForEach(func(key, value gjson.Result) bool {
-		tags = append(tags, value.String())
-		return true
-	})
 
 	for _, v := range u {
 		nt, err := filterTags(tags, v.Include, v.Exclude)
@@ -115,26 +111,14 @@ func customUrlTest(config []byte, u []model.UrlTestArg) ([]byte, error) {
 		})
 	}
 
-	for _, v := range sl {
-		var err error
-		v := v
-		config, err = sjson.SetBytes(config, "outbounds.-1", v)
-		if err != nil {
-			return nil, fmt.Errorf("customUrlTest: %w", err)
-		}
-	}
-	return jsonFormatting(config), nil
-}
+	l := config["outbounds"].([]any)
 
-func jsonFormatting(config []byte) []byte {
-	var a any
-	lo.Must0(json.Unmarshal(config, &a))
-	bw := bytes.NewBuffer(nil)
-	jw := json.NewEncoder(bw)
-	jw.SetEscapeHTML(false)
-	jw.SetIndent("", "    ")
-	lo.Must0(jw.Encode(a))
-	return bw.Bytes()
+	for _, v := range sl {
+		l = append(l, v)
+	}
+	config["outbounds"] = l
+
+	return config, nil
 }
 
 func filterTags(tags []string, include, exclude string) ([]string, error) {
@@ -164,55 +148,46 @@ func filter(reg string, tags []string, need bool) ([]string, error) {
 	return tag, nil
 }
 
-func configUrlTestParser(config []byte) ([]byte, error) {
-	r := gjson.GetBytes(config, `outbounds.#(outbounds)#`)
-	if !r.Exists() {
-		return nil, fmt.Errorf("customUrlTest: %w", ErrJson)
-	}
-	setMap := map[string][]string{}
+func configUrlTestParser(config map[string]any, tags []string) (map[string]any, error) {
+	outL := config["outbounds"].([]any)
 
-	tags := []string{}
-	gjson.GetBytes(config, `outbounds.#(tag=="urltest").outbounds`).ForEach(func(key, value gjson.Result) bool {
-		tags = append(tags, value.String())
-		return true
-	})
+	newOut := make([]any, 0, len(outL))
 
-	for _, value := range r.Array() {
-		tl, err := urlTestParser(value, tags)
+	for _, value := range outL {
+		value := value
+
+		outList := utils.AnyGet[[]any](value, "outbounds")
+
+		if len(outList) == 0 {
+			newOut = append(newOut, value)
+			continue
+		}
+
+		outListS := lo.FilterMap[any, string](outList, func(item any, index int) (string, bool) {
+			s, ok := item.(string)
+			return s, ok
+		})
+
+		tl, err := urlTestParser(outListS, tags)
 		if err != nil {
 			return nil, fmt.Errorf("customUrlTest: %w", err)
 		}
 		if tl == nil {
+			newOut = append(newOut, value)
 			continue
 		}
-		tagName := value.Get("tag").String()
-		setMap[tagName] = tl
+		utils.AnySet(&value, tl, "outbounds")
+		newOut = append(newOut, value)
 	}
-
-	if len(setMap) == 0 {
-		return config, nil
-	}
-
-	for k, v := range setMap {
-		b, err := json.Marshal(k)
-		if err != nil {
-			return nil, fmt.Errorf("customUrlTest: %w", err)
-		}
-		config, err = sjson.SetBytes(config, `outbounds.#(tag==`+string(b)+`).outbounds`, v)
-		if err != nil {
-			return nil, fmt.Errorf("customUrlTest: %w", err)
-		}
-	}
-	return jsonFormatting(config), nil
+	utils.AnySet(&config, newOut, "outbounds")
+	return config, nil
 }
 
-func urlTestParser(value gjson.Result, tags []string) ([]string, error) {
-	out := value.Get("outbounds")
+func urlTestParser(outbounds, tags []string) ([]string, error) {
 	var include, exclude string
 	extTag := []string{}
 
-	out.ForEach(func(key, value gjson.Result) bool {
-		s := value.String()
+	for _, s := range outbounds {
 		if strings.HasPrefix(s, "include: ") {
 			include = strings.TrimPrefix(s, "include: ")
 		} else if strings.HasPrefix(s, "exclude: ") {
@@ -220,8 +195,7 @@ func urlTestParser(value gjson.Result, tags []string) ([]string, error) {
 		} else {
 			extTag = append(extTag, s)
 		}
-		return true
-	})
+	}
 
 	if include == "" && exclude == "" {
 		return nil, nil

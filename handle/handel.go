@@ -62,6 +62,8 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 		exclude := r.FormValue("exclude")
 		urltest := r.FormValue("urltest")
 		addTag := r.FormValue("addTag")
+		disableUrlTest := r.FormValue("disableUrlTest")
+		disableUrlTestb := false
 		addTagb := false
 
 		if id == "" && sub == "" {
@@ -71,6 +73,9 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 		}
 		if addTag == "true" {
 			addTagb = true
+		}
+		if disableUrlTest == "true" {
+			disableUrlTestb = true
 		}
 
 		rc := http.NewResponseController(w)
@@ -87,13 +92,14 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 				}
 
 				a := model.ConvertArg{
-					Sub:       sub,
-					Include:   include,
-					Exclude:   exclude,
-					Config:    config,
-					ConfigUrl: curl,
-					AddTag:    addTagb,
-					UrlTest:   []model.UrlTestArg{},
+					Sub:            sub,
+					Include:        include,
+					Exclude:        exclude,
+					Config:         config,
+					ConfigUrl:      curl,
+					AddTag:         addTagb,
+					UrlTest:        []model.UrlTestArg{},
+					DisableUrlTest: disableUrlTestb,
 				}
 				if urltest != "" {
 					b, err := zlibDecode(urltest)

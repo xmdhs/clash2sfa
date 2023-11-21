@@ -1,13 +1,14 @@
 package model
 
 type ConvertArg struct {
-	Sub       string
-	Include   string
-	Exclude   string
-	Config    string
-	ConfigUrl string
-	AddTag    bool
-	UrlTest   []UrlTestArg
+	Sub            string
+	Include        string
+	Exclude        string
+	Config         string
+	ConfigUrl      string
+	AddTag         bool
+	UrlTest        []UrlTestArg
+	DisableUrlTest bool
 }
 
 type UrlTestArg struct {
