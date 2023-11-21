@@ -21,8 +21,8 @@ func AnyGet[K any](d any, f string) K {
 			return k
 		}
 		return d
-	case reflect.Map:
-		m, ok := d.(map[string]any)
+	case reflect.Map, reflect.Interface:
+		m, ok := rv.Interface().(map[string]any)
 		if !ok {
 			return k
 		}
