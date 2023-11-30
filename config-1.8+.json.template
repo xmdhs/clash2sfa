@@ -113,10 +113,11 @@
                 "outbound": "select"
             },
             {
-                "rule_set": [
-                    "geoip-cn",
-                    "geoip-private"
-                ],
+                "ip_is_private": true,
+                "outbound": "direct"
+            },
+            {
+                "rule_set": "geoip-cn",
                 "outbound": "direct"
             }
         ],
@@ -127,12 +128,6 @@
                 "type": "remote",
                 "format": "binary",
                 "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs"
-            },
-            {
-                "tag": "geoip-private",
-                "type": "remote",
-                "format": "source",
-                "url": "https://gist.githubusercontent.com/xmdhs/71fc5ff6ef29f5ecaf2c52b8de5c3172/raw/b4ce60ac17209740954b598e363f0c2de6876482/geoip-private.json"
             },
             {
                 "tag": "geosite-cn",
