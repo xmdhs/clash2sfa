@@ -44,10 +44,6 @@
                 <input type="checkbox" id="switch" name="switch" role="switch" v-model="saveType">
                 {{ saveTypeText }}
             </label>
-            <label for="addTag">
-                <input type="checkbox" id="addTag" role="switch" v-model="addTag">
-                生成的节点中添加订阅地址的域名，用以区分不同订阅的节点
-            </label>
             <br />
             <details>
                 <summary>更多设置</summary>
@@ -66,6 +62,7 @@
     ]
 }</pre>
                     <span>均可以使用正则筛选</span>
+                    <span>sing-box 1.8+ 可参照 https://raw.githubusercontent.com/xmdhs/clash2sfa/master/config-1.8+.json.template</span>
                     <br />
                     <label>
                         <input type="checkbox" role="switch" v-model="checkbox">
@@ -74,7 +71,11 @@
                     <label>
                         <input type="checkbox" role="switch" v-model="disableUrlTest">
                         禁用默认生成的 urltest 和 selector
-                    </label>        
+                    </label>    
+                    <label for="addTag">
+                        <input type="checkbox" id="addTag" role="switch" v-model="addTag">
+                        生成的节点中添加订阅地址的域名，用以区分不同订阅的节点
+                    </label>            
                     <textarea style="resize: none;height: 25em;" v-model="config" v-show="!checkbox"></textarea>
                     <input v-model="configurl" v-show="checkbox" />
                 </details>
