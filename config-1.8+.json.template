@@ -30,7 +30,10 @@
             },
             {
                 "disable_cache": true,
-                "rule_set": "geosite-category-ads-all",
+                "rule_set": [
+                    "geosite-category-ads-all",
+                    "chrome-doh"
+                ],
                 "server": "block"
             },
             {
@@ -140,6 +143,12 @@
                 "type": "remote",
                 "format": "binary",
                 "url": "https://raw.githubusercontent.com/xmdhs/sing-geosite/rule-set-Loyalsoldier/geosite-category-ads-all.srs"
+            },
+            {
+                "tag": "chrome-doh",
+                "type": "remote",
+                "format": "source",
+                "url": "https://gist.githubusercontent.com/xmdhs/71fc5ff6ef29f5ecaf2c52b8de5c3172/raw/chrome-doh.json"
             }
         ]
     },
