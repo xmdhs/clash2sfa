@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/samber/lo v1.38.1
 	github.com/tidwall/gjson v1.17.0
-	github.com/xmdhs/clash2singbox v0.0.3-0.20231121051635-553d9dd888b6
+	github.com/xmdhs/clash2singbox v0.0.3-0.20231201055643-08fd36ed81ed
 	go.etcd.io/bbolt v1.3.8
 	lukechampine.com/blake3 v1.2.1
 )
