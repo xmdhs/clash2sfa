@@ -31,7 +31,7 @@
             {
                 "disable_cache": true,
                 "rule_set": [
-                    "geosite-category-ads-all",
+                    "AdGuardSDNSFilter",
                     "chrome-doh"
                 ],
                 "server": "block"
@@ -139,10 +139,10 @@
                 "url": "https://raw.githubusercontent.com/xmdhs/sing-geosite/rule-set-Loyalsoldier/geosite-cn.srs"
             },
             {
-                "tag": "geosite-category-ads-all",
+                "tag": "AdGuardSDNSFilter",
                 "type": "remote",
                 "format": "binary",
-                "url": "https://raw.githubusercontent.com/xmdhs/sing-geosite/rule-set-Loyalsoldier/geosite-category-ads-all.srs"
+                "url": "https://raw.githubusercontent.com/xmdhs/sing-box-ruleset/rule-set/AdGuardSDNSFilter.srs"
             },
             {
                 "tag": "chrome-doh",
