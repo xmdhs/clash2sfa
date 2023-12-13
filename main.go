@@ -53,9 +53,9 @@ func main() {
 	mux := chi.NewMux()
 
 	mux.Use(middleware.RequestID)
-	mux.Use(NewStructuredLogger(h))
 	mux.Use(middleware.RealIP)
-
+	mux.Use(NewStructuredLogger(h))
+	
 	mux.Post("/put", handle.PutArg(db, l))
 	mux.Get("/sub", handle.Sub(c, db, configByte, l))
 	mux.With(middleware.NoCache).Get("/config", handle.Frontend(configByte, 0))
