@@ -3,9 +3,10 @@ module github.com/xmdhs/clash2sfa
 go 1.21
 
 require (
+	github.com/go-chi/chi/v5 v5.0.10
 	github.com/samber/lo v1.38.1
 	github.com/tidwall/gjson v1.17.0
-	github.com/xmdhs/clash2singbox v0.0.3-0.20231208063129-7a28b7f959c4
+	github.com/xmdhs/clash2singbox v0.0.3-0.20231213024351-471353cd8fab
 	go.etcd.io/bbolt v1.3.8
 	lukechampine.com/blake3 v1.2.1
 )
