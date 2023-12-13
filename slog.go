@@ -34,8 +34,6 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	}
 
 	handler := l.Logger.WithAttrs(append(logFields,
-		slog.String("http_scheme", scheme),
-		slog.String("http_proto", r.Proto),
 		slog.String("http_method", r.Method),
 		slog.String("remote_addr", r.RemoteAddr),
 		slog.String("user_agent", r.UserAgent()),
