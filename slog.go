@@ -24,24 +24,22 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	logFields = append(logFields, slog.String("ts", time.Now().UTC().Format(time.RFC3339)))
 	ctx := r.Context()
 
-	if reqID := middleware.GetReqID(ctx); reqID != "" {
-		logFields = append(logFields, slog.String("req_id", reqID))
-	}
-
 	scheme := "http"
 	if r.TLS != nil {
 		scheme = "https"
 	}
 
-	handler := l.Logger.WithAttrs(append(logFields,
+	logFields = append(logFields,
 		slog.String("http_method", r.Method),
 		slog.String("remote_addr", r.RemoteAddr),
 		slog.String("user_agent", r.UserAgent()),
-		slog.String("uri", fmt.Sprintf("%s://%s%s", scheme, r.Host, r.RequestURI))))
+		slog.String("uri", fmt.Sprintf("%s://%s%s", scheme, r.Host, r.RequestURI)))
 
-	entry := StructuredLoggerEntry{Logger: slog.New(handler), ctx: ctx}
+	logger := NewSlog(l.Logger)
 
-	entry.Logger.LogAttrs(ctx, slog.LevelDebug, "request started")
+	logger.LogAttrs(ctx, slog.LevelDebug, "request started", logFields...)
+
+	entry := StructuredLoggerEntry{Logger: logger, ctx: ctx}
 
 	return &entry
 }
@@ -73,7 +71,7 @@ type warpSlogHandle struct {
 func (w *warpSlogHandle) Handle(ctx context.Context, r slog.Record) error {
 	id := middleware.GetReqID(ctx)
 	if id != "" {
-		r.AddAttrs(slog.String("trackID", id))
+		r.AddAttrs(slog.String("req_id", id))
 	}
 	return w.Handler.Handle(ctx, r)
 }
