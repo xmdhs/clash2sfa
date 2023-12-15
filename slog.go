@@ -21,7 +21,6 @@ type StructuredLogger struct {
 
 func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	var logFields []slog.Attr
-	logFields = append(logFields, slog.String("ts", time.Now().UTC().Format(time.RFC3339)))
 	ctx := r.Context()
 
 	scheme := "http"
