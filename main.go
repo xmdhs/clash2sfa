@@ -55,8 +55,8 @@ func main() {
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.RealIP)
 	mux.Use(NewStructuredLogger(h))
-	
-	mux.Post("/put", handle.PutArg(db, l))
+
+	mux.Put("/put", handle.PutArg(db, l))
 	mux.Get("/sub", handle.Sub(c, db, configByte, l))
 	mux.With(middleware.NoCache).Get("/config", handle.Frontend(configByte, 0))
 	mux.HandleFunc("/", handle.Frontend(frontendByte, 604800))
