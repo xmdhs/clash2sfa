@@ -52,22 +52,10 @@
                 "server": "local"
             },
             {
-                "type": "logical",
-                "mode": "and",
-                "rules": [
-                    {
-                        "geosite": "cn@!cn",
-                        "invert": true
-                    },
-                    {
-                        "geosite": [
-                            "cn",
-                            "geolocation-!cn@cn"
-                        ]
-                    }
-                ],
+                "geosite": "cn",
                 "server": "local"
             }
+
         ],
         "strategy": "prefer_ipv4",
         "independent_cache": true,
