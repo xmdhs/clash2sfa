@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"log/slog"
@@ -63,13 +62,6 @@ func MakeConfig(cxt context.Context, c *http.Client, frontendByte []byte, l *slo
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}
-	if len(arg.UrlTest) != 0 {
-		nb, err := customUrlTest(m, arg.UrlTest, nodeTag)
-		if err != nil {
-			return nil, fmt.Errorf("MakeConfig: %w", err)
-		}
-		m = nb
-	}
 	m, err = configUrlTestParser(m, nodeTag)
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
@@ -87,39 +79,6 @@ func MakeConfig(cxt context.Context, c *http.Client, frontendByte []byte, l *slo
 var (
 	ErrJson = errors.New("错误的 json")
 )
-
-func customUrlTest(config map[string]any, u []model.UrlTestArg, tags []string) (map[string]any, error) {
-	sl := []model.SingUrltest{}
-
-	for _, v := range u {
-		nt, err := filterTags(tags, v.Include, v.Exclude)
-		if err != nil {
-			return nil, fmt.Errorf("customUrlTest: %w", err)
-		}
-		var t int
-		if v.Type == "urltest" {
-			t, _ = lo.TryOr[int](func() (int, error) { return strconv.Atoi(v.Tolerance) }, 0)
-		}
-		if v.Type == "" {
-			v.Type = "urltest"
-		}
-		sl = append(sl, model.SingUrltest{
-			Outbounds: nt,
-			Tag:       v.Tag,
-			Tolerance: t,
-			Type:      v.Type,
-		})
-	}
-
-	l := config["outbounds"].([]any)
-
-	for _, v := range sl {
-		l = append(l, v)
-	}
-	config["outbounds"] = l
-
-	return config, nil
-}
 
 func filterTags(tags []string, include, exclude string) ([]string, error) {
 	nt, err := filter(include, tags, true)

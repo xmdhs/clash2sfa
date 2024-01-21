@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	_ "embed"
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"time"
 
@@ -12,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/samber/lo"
 	"github.com/xmdhs/clash2sfa/db"
 	"github.com/xmdhs/clash2sfa/handle"
 )
@@ -59,7 +63,12 @@ func main() {
 	mux.Put("/put", handle.PutArg(db, l))
 	mux.Get("/sub", handle.Sub(c, db, configByte, l))
 	mux.With(middleware.NoCache).Get("/config", handle.Frontend(configByte, 0))
-	mux.HandleFunc("/", handle.Frontend(frontendByte, 604800))
+
+	buildInfo, _ := debug.ReadBuildInfo()
+	bw := &bytes.Buffer{}
+	lo.Must(template.New("index").Delims("[[", "]]").Parse(string(frontendByte))).ExecuteTemplate(bw, "index", buildInfo.Main)
+
+	mux.HandleFunc("/", handle.Frontend(bw.Bytes(), 604800))
 
 	s := http.Server{
 		ReadTimeout:       10 * time.Second,

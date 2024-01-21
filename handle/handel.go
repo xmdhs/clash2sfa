@@ -60,7 +60,6 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 		sub := r.FormValue("sub")
 		include := r.FormValue("include")
 		exclude := r.FormValue("exclude")
-		urltest := r.FormValue("urltest")
 		addTag := r.FormValue("addTag")
 		disableUrlTest := r.FormValue("disableUrlTest")
 		disableUrlTestb := false
@@ -90,7 +89,6 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 					}
 					config = string(b)
 				}
-
 				a := model.ConvertArg{
 					Sub:            sub,
 					Include:        include,
@@ -98,20 +96,7 @@ func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.Han
 					Config:         config,
 					ConfigUrl:      curl,
 					AddTag:         addTagb,
-					UrlTest:        []model.UrlTestArg{},
 					DisableUrlTest: disableUrlTestb,
-				}
-				if urltest != "" {
-					b, err := zlibDecode(urltest)
-					if err != nil {
-						return nil, err
-					}
-					var u []model.UrlTestArg
-					err = json.Unmarshal(b, &u)
-					if err != nil {
-						return nil, err
-					}
-					a.UrlTest = u
 				}
 				return service.MakeConfig(ctx, c, frontendByte, l, a)
 			}
