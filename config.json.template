@@ -4,7 +4,7 @@
         "servers": [
             {
                 "tag": "remote",
-                "address": "8.8.8.8",
+                "address": "tcp://8.8.8.8",
                 "detour": "select"
             },
             {
