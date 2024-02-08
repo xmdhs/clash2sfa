@@ -47,6 +47,9 @@ func convert2sing(cxt context.Context, client *http.Client, config,
 	nodeTag := make([]string, 0, len(s)+len(extTag))
 
 	for _, v := range s {
+		if v.Ignored {
+			continue
+		}
 		nodeTag = append(nodeTag, v.Tag)
 	}
 	nodeTag = append(nodeTag, extTag...)

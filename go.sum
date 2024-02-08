@@ -29,6 +29,8 @@ github.com/xmdhs/clash2singbox v0.0.3-0.20231213024351-471353cd8fab h1:+6CwuelwV
 github.com/xmdhs/clash2singbox v0.0.3-0.20231213024351-471353cd8fab/go.mod h1:u2kIEBN2r26EGFSdU7mTwCqz4XG2B7Cwq8U1dVn2IXI=
 github.com/xmdhs/clash2singbox v0.0.3-0.20240128111501-d8f3d7ee4f40 h1:T5NcAfn1Kp5O0ArIKYS9wf69jF0wyAqzv3zGxjw+Tlc=
 github.com/xmdhs/clash2singbox v0.0.3-0.20240128111501-d8f3d7ee4f40/go.mod h1:u2kIEBN2r26EGFSdU7mTwCqz4XG2B7Cwq8U1dVn2IXI=
+github.com/xmdhs/clash2singbox v0.0.3-0.20240208102408-02963778dec1 h1:WQjjH7GZi+Eins2cVEex9mbFZpoPq/I3j2N8kZfroJ0=
+github.com/xmdhs/clash2singbox v0.0.3-0.20240208102408-02963778dec1/go.mod h1:93D+aPH4GwUd0xcN/hpZyr4/enXWti8/zyKfWYns/iw=
 go.etcd.io/bbolt v1.3.8 h1:xs88BrvEv273UsB79e0hcVrlUWmS0a8upikMFhSyAtA=
 go.etcd.io/bbolt v1.3.8/go.mod h1:N9Mkw9X8x5fupy0IKsmuqVtoGDyxsaDlbk4Rd05IAQw=
 golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa h1:FRnLl4eNAQl8hwxVVC17teOw8kdjVDVAiFMtgUdTSRQ=
