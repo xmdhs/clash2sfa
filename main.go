@@ -65,8 +65,14 @@ func main() {
 	mux.With(middleware.NoCache).Get("/config", handle.Frontend(configByte, 0))
 
 	buildInfo, _ := debug.ReadBuildInfo()
+	var hash string
+	for _, v := range buildInfo.Settings {
+		if v.Key == "vcs.revision" {
+			hash = v.Value
+		}
+	}
 	bw := &bytes.Buffer{}
-	lo.Must(template.New("index").Delims("[[", "]]").Parse(string(frontendByte))).ExecuteTemplate(bw, "index", buildInfo.Main)
+	lo.Must(template.New("index").Delims("[[", "]]").Parse(string(frontendByte))).ExecuteTemplate(bw, "index", []string{buildInfo.Main.Path, hash})
 
 	mux.HandleFunc("/", handle.Frontend(bw.Bytes(), 604800))
 
