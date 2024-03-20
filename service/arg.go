@@ -21,44 +21,60 @@ import (
 	"lukechampine.com/blake3"
 )
 
-func PutArg(cxt context.Context, arg model.ConvertArg, db db.DB) (string, error) {
+type Convert struct {
+	c            *http.Client
+	db           db.DB
+	frontendByte []byte
+	l            *slog.Logger
+}
+
+func NewConvert(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) *Convert {
+	return &Convert{
+		c:            c,
+		db:           db,
+		frontendByte: frontendByte,
+		l:            l,
+	}
+}
+
+func (c *Convert) PutArg(cxt context.Context, arg model.ConvertArg) (string, error) {
 	b, err := json.Marshal(arg)
 	if err != nil {
 		return "", fmt.Errorf("PutArg: %w", err)
 	}
 	hash := blake3.Sum256(b)
 	h := hex.EncodeToString(hash[:])
-	err = db.PutArg(cxt, h, arg)
+	err = c.db.PutArg(cxt, h, arg)
 	if err != nil {
 		return "", fmt.Errorf("PutArg: %w", err)
 	}
 	return h, nil
 }
 
-func GetSub(cxt context.Context, c *http.Client, db db.DB, id string, frontendByte []byte, l *slog.Logger) ([]byte, error) {
-	arg, err := db.GetArg(cxt, id)
+func (c *Convert) GetSub(cxt context.Context, id string) ([]byte, error) {
+	arg, err := c.db.GetArg(cxt, id)
 	if err != nil {
 		return nil, fmt.Errorf("GetSub: %w", err)
 	}
-	b, err := MakeConfig(cxt, c, frontendByte, l, arg)
+	b, err := c.MakeConfig(cxt, arg)
 	if err != nil {
 		return nil, fmt.Errorf("GetSub: %w", err)
 	}
 	return b, nil
 }
 
-func MakeConfig(cxt context.Context, c *http.Client, frontendByte []byte, l *slog.Logger, arg model.ConvertArg) ([]byte, error) {
+func (c *Convert) MakeConfig(cxt context.Context, arg model.ConvertArg) ([]byte, error) {
 	if arg.Config == "" && arg.ConfigUrl == "" {
-		arg.Config = string(frontendByte)
+		arg.Config = string(c.frontendByte)
 	}
 	if arg.ConfigUrl != "" {
-		b, err := httputils.HttpGet(cxt, c, arg.ConfigUrl, 1000*1000*10)
+		b, err := httputils.HttpGet(cxt, c.c, arg.ConfigUrl, 1000*1000*10)
 		if err != nil {
 			return nil, fmt.Errorf("MakeConfig: %w", err)
 		}
 		arg.Config = string(b)
 	}
-	m, nodeTag, err := convert2sing(cxt, c, arg.Config, arg.Sub, arg.Include, arg.Exclude, arg.AddTag, l, !arg.DisableUrlTest)
+	m, nodeTag, err := convert2sing(cxt, c.c, arg.Config, arg.Sub, arg.Include, arg.Exclude, arg.AddTag, c.l, !arg.DisableUrlTest)
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}
