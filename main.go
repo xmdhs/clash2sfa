@@ -48,7 +48,7 @@ func main() {
 	level.Set(slog.Level(leveln))
 
 	c := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: 60 * time.Second,
 	}
 	h := slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 		Level: level,
@@ -78,12 +78,12 @@ func main() {
 	bw := &bytes.Buffer{}
 	lo.Must(template.New("index").Delims("[[", "]]").Parse(string(frontendByte))).ExecuteTemplate(bw, "index", []string{buildInfo.Main.Path, hash})
 
-	mux.HandleFunc("/", handle.Frontend(bw.Bytes(), 604800))
+	mux.HandleFunc("/", handle.Frontend(bw.Bytes(), 0))
 
 	s := http.Server{
-		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      20 * time.Second,
-		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
 		Addr:              port,
 		Handler:           mux,
 	}

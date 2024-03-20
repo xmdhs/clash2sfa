@@ -85,7 +85,7 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rc := http.NewResponseController(w)
-	rc.SetWriteDeadline(time.Now().Add(1 * time.Minute))
+	rc.SetWriteDeadline(time.Now().Add(2 * time.Minute))
 
 	b, err := func() ([]byte, error) {
 		if sub != "" {
