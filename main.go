@@ -55,7 +55,7 @@ func main() {
 	})
 	l := NewSlog(h)
 
-	convert := service.NewConvert(c, db, frontendByte, l)
+	convert := service.NewConvert(c, db, configByte, l)
 	subH := handle.NewHandle(convert, l)
 
 	mux := chi.NewMux()

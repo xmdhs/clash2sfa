@@ -22,18 +22,18 @@ import (
 )
 
 type Convert struct {
-	c            *http.Client
-	db           db.DB
-	frontendByte []byte
-	l            *slog.Logger
+	c          *http.Client
+	db         db.DB
+	configByte []byte
+	l          *slog.Logger
 }
 
 func NewConvert(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) *Convert {
 	return &Convert{
-		c:            c,
-		db:           db,
-		frontendByte: frontendByte,
-		l:            l,
+		c:          c,
+		db:         db,
+		configByte: frontendByte,
+		l:          l,
 	}
 }
 
@@ -65,7 +65,7 @@ func (c *Convert) GetSub(cxt context.Context, id string) ([]byte, error) {
 
 func (c *Convert) MakeConfig(cxt context.Context, arg model.ConvertArg) ([]byte, error) {
 	if arg.Config == "" && arg.ConfigUrl == "" {
-		arg.Config = string(c.frontendByte)
+		arg.Config = string(c.configByte)
 	}
 	if arg.ConfigUrl != "" {
 		b, err := httputils.HttpGet(cxt, c.c, arg.ConfigUrl, 1000*1000*10)
