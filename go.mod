@@ -6,7 +6,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/samber/lo v1.39.0
 	github.com/tidwall/gjson v1.17.1
-	github.com/xmdhs/clash2singbox v0.1.4
+	github.com/xmdhs/clash2singbox v0.1.5-0.20240330075740-4b7e39bb0d8e
 	go.etcd.io/bbolt v1.3.9
 	lukechampine.com/blake3 v1.2.1
 )
