@@ -4,7 +4,7 @@
         "servers": [
             {
                 "tag": "remote",
-                "address": "https://8.8.8.8/dns-query",
+                "address": "https://1.1.1.1/dns-query",
                 "detour": "select"
             },
             {
@@ -129,7 +129,7 @@
                 "tag": "geosite-cn",
                 "type": "remote",
                 "format": "binary",
-                "url": "https://raw.githubusercontent.com/xmdhs/sing-geosite/rule-set-Loyalsoldier/geosite-cn.srs"
+                "url": "https://raw.githubusercontent.com/xmdhs/sing-geosite/rule-set-Loyalsoldier/geosite-geolocation-cn.srs"
             },
             {
                 "tag": "AdGuardSDNSFilter",
