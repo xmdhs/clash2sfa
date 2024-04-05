@@ -60,7 +60,7 @@ func convert2sing(cxt context.Context, client *http.Client, config,
 
 var ErrFormat = errors.New("错误的格式")
 
-var notNeedType = map[string]struct{}{
+var notNeedTag = map[string]struct{}{
 	"direct": {},
 	"block":  {},
 	"dns":    {},
@@ -86,7 +86,7 @@ func getExtTag(config string) ([]extTag, error) {
 	for _, v := range outs.Array() {
 		tag := v.Get("tag").String()
 		atype := v.Get("type").String()
-		if _, ok := notNeedType[atype]; ok {
+		if _, ok := notNeedTag[tag]; ok {
 			continue
 		}
 		nodes = append(nodes, extTag{
