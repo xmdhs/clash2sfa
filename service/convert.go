@@ -150,7 +150,7 @@ func urlTestDetourSet(s []singbox.SingBoxOut, config string, outs []map[string]a
 				newSingOut = append(newSingOut, v)
 			}
 			for _, v := range outs {
-				newAnyOut = append(newAnyOut, maps.Clone(v))
+				v := maps.Clone(v)
 
 				t := utils.AnyGet[string](v, "type")
 				if t == "urltest" || t == "selector" {
@@ -181,8 +181,7 @@ func urlTestDetourSet(s []singbox.SingBoxOut, config string, outs []map[string]a
 	})
 
 	if update {
-		tagV = append(tagV, newExtTag...)
-		return append(s, newSingOut...), newAnyOut, append(tagV, newExtTag...)
+		return append(s, newSingOut...), append(outs, newAnyOut...), append(tagV, newExtTag...)
 	}
 
 	return s, outs, tagV
