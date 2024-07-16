@@ -146,9 +146,19 @@ func configUrlTestParser(config map[string]any, tags []TagWithVisible) (map[stri
 			return s, ok
 		})
 
-		tl, err := urlTestParser(outListS, lo.FilterMap(tags, func(item TagWithVisible, index int) (string, bool) {
-			return item.Tag, len(item.Visible) != 0 && slices.Contains(item.Visible, tag)
-		}))
+		var tagStr []string
+
+		if utils.AnyGet[string](value, "detour") != "" {
+			tagStr = lo.FilterMap(tags, func(item TagWithVisible, index int) (string, bool) {
+				return item.Tag, len(item.Visible) != 0 && slices.Contains(item.Visible, tag)
+			})
+		} else {
+			tagStr = lo.Map(tags, func(item TagWithVisible, index int) string {
+				return item.Tag
+			})
+		}
+
+		tl, err := urlTestParser(outListS, tagStr)
 		if err != nil {
 			return nil, fmt.Errorf("customUrlTest: %w", err)
 		}
