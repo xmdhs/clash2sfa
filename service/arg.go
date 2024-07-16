@@ -157,8 +157,8 @@ func configUrlTestParser(config map[string]any, tags []TagWithVisible) (map[stri
 				delete(m, "detour")
 			}
 		} else {
-			tagStr = lo.Map(tags, func(item TagWithVisible, index int) string {
-				return item.Tag
+			tagStr = lo.FilterMap(tags, func(item TagWithVisible, index int) (string, bool) {
+				return item.Tag, len(item.Visible) == 0
 			})
 		}
 
