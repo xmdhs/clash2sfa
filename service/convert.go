@@ -4,17 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 
 	"log/slog"
 
+	"github.com/samber/lo"
 	"github.com/tidwall/gjson"
+	"github.com/xmdhs/clash2sfa/utils"
 	"github.com/xmdhs/clash2singbox/convert"
 	"github.com/xmdhs/clash2singbox/httputils"
+	"github.com/xmdhs/clash2singbox/model/singbox"
 )
 
 func convert2sing(cxt context.Context, client *http.Client, config,
-	sub string, include, exclude string, addTag bool, l *slog.Logger, urlTestOut bool) (map[string]any, []string, error) {
+	sub string, include, exclude string, addTag bool, l *slog.Logger, urlTestOut bool) (map[string]any, []TagWithVisible, error) {
 	c, singList, tags, err := httputils.GetAny(cxt, client, sub, addTag)
 	if err != nil {
 		return nil, nil, fmt.Errorf("convert2sing: %w", err)
@@ -24,7 +28,7 @@ func convert2sing(cxt context.Context, client *http.Client, config,
 	if err != nil {
 		return nil, nil, fmt.Errorf("convert2sing: %w", err)
 	}
-	outs := make([]any, 0, len(nodes)+len(singList))
+	outs := make([]map[string]any, 0, len(nodes)+len(singList))
 	extTag := make([]string, 0, len(nodes)+len(tags))
 
 	for _, v := range nodes {
@@ -40,20 +44,27 @@ func convert2sing(cxt context.Context, client *http.Client, config,
 	}
 	outs = append(outs, singList...)
 	extTag = append(extTag, tags...)
-	nb, err := convert.PatchMap([]byte(config), s, include, exclude, outs, extTag, urlTestOut)
+
+	s, outs, extTagWithV := urlTestDetourSet(s, config, outs, extTag)
+
+	nb, err := convert.PatchMap([]byte(config), s, include, exclude, lo.Map(outs, func(item map[string]any, index int) any {
+		return item
+	}), extTag, urlTestOut)
 	if err != nil {
 		return nil, nil, fmt.Errorf("convert2sing: %w", err)
 	}
-	nodeTag := make([]string, 0, len(s)+len(extTag))
+	nodeTag := make([]TagWithVisible, 0, len(s)+len(extTagWithV))
 
 	for _, v := range s {
 		if v.Ignored {
 			continue
 		}
-		nodeTag = append(nodeTag, v.Tag)
+		nodeTag = append(nodeTag, TagWithVisible{
+			Tag:     v.Tag,
+			Visible: v.Visible,
+		})
 	}
-	nodeTag = append(nodeTag, extTag...)
-
+	nodeTag = append(nodeTag, extTagWithV...)
 	return nb, nodeTag, nil
 
 }
@@ -68,7 +79,7 @@ var notNeedTag = map[string]struct{}{
 
 type extTag struct {
 	tag      string
-	node     any
+	node     map[string]any
 	nodeType string
 }
 
@@ -89,11 +100,87 @@ func getExtTag(config string) ([]extTag, error) {
 		if _, ok := notNeedTag[tag]; ok {
 			continue
 		}
-		nodes = append(nodes, extTag{
-			tag:      tag,
-			node:     v.Value(),
-			nodeType: atype,
-		})
+		m, ok := v.Value().(map[string]any)
+		if ok {
+			nodes = append(nodes, extTag{
+				tag:      tag,
+				node:     m,
+				nodeType: atype,
+			})
+		}
 	}
 	return nodes, nil
+}
+
+type TagWithVisible struct {
+	Tag     string
+	Visible []string
+}
+
+func urlTestDetourSet(s []singbox.SingBoxOut, config string, outs []map[string]any, extTag []string) ([]singbox.SingBoxOut, []map[string]any, []TagWithVisible) {
+	j := gjson.Parse(config)
+	newSingOut := make([]singbox.SingBoxOut, 0)
+	newAnyOut := make([]map[string]any, 0)
+	newExtTag := make([]TagWithVisible, 0)
+
+	list := j.Get("outbounds.#(outbounds)#").Array()
+
+	notAdd := map[string]struct{}{}
+	for _, v := range outs {
+		d := utils.AnyGet[string](v, "detour")
+		if d != "" {
+			notAdd[d] = struct{}{}
+		}
+	}
+
+	for _, value := range list {
+		detour := value.Get("detour").String()
+		tag := value.Get("tag").String()
+		if detour != "" {
+			for _, v := range s {
+				if v.Ignored || v.Tag == detour {
+					continue
+				}
+				v.Tag = fmt.Sprintf("%v - %v [%v]", v.Tag, detour, tag)
+				v.Detour = detour
+				v.Visible = append(v.Visible, tag)
+				newSingOut = append(newSingOut, v)
+			}
+			for _, v := range outs {
+				delete(v, "detour")
+				newAnyOut = append(newAnyOut, maps.Clone(v))
+
+				t := utils.AnyGet[string](v, "type")
+				if t == "urltest" || t == "selector" {
+					continue
+				}
+				oldTag := utils.AnyGet[string](v, "tag")
+				if _, ok := notAdd[oldTag]; ok {
+					continue
+				}
+
+				newTag := fmt.Sprintf("%v - %v [%v]", oldTag, detour, tag)
+				utils.AnySet(&v, newTag, "tag")
+				utils.AnySet(&v, detour, "detour")
+				newAnyOut = append(newAnyOut, v)
+				newExtTag = append(newExtTag, TagWithVisible{
+					Tag:     newTag,
+					Visible: []string{tag},
+				})
+			}
+		}
+	}
+
+	tagV := lo.Map(extTag, func(item string, index int) TagWithVisible {
+		return TagWithVisible{
+			Tag: item,
+		}
+	})
+
+	if len(list) > 0 {
+		tagV = append(tagV, newExtTag...)
+		return append(s, newSingOut...), newAnyOut, append(tagV, newExtTag...)
+	}
+
+	return s, outs, tagV
 }
