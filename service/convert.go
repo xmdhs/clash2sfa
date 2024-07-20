@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
+	"sync"
 
 	"log/slog"
 
@@ -125,51 +126,103 @@ func urlTestDetourSet(s []singbox.SingBoxOut, config string, outs []map[string]a
 
 	list := j.Get("outbounds.#(outbounds)#").Array()
 
-	notAdd := map[string]struct{}{}
-	for _, v := range outs {
-		d := utils.AnyGet[string](v, "detour")
-		if d != "" {
-			notAdd[d] = struct{}{}
-		}
+	update := false
+
+	type OnceValue struct {
+		singMap map[string]singbox.SingBoxOut
+		anyMap  map[string]map[string]any
+		allTags []string
 	}
 
-	update := false
+	mapF := sync.OnceValue(func() OnceValue {
+		singMap := lo.SliceToMap(s, func(item singbox.SingBoxOut) (string, singbox.SingBoxOut) {
+			return item.Tag, item
+		})
+		anyMap := lo.SliceToMap(outs, func(item map[string]any) (string, map[string]any) {
+			return utils.AnyGet[string](item, "tag"), item
+		})
+		allTags := make([]string, 0, len(s)+len(outs))
+		for _, v := range s {
+			if v.Ignored {
+				continue
+			}
+			allTags = append(allTags, v.Tag)
+		}
+		for k, v := range anyMap {
+			t := utils.AnyGet[string](v, "type")
+			if t == "urltest" || t == "selector" {
+				continue
+			}
+			allTags = append(allTags, k)
+		}
+
+		update = true
+		return OnceValue{
+			singMap: singMap,
+			anyMap:  anyMap,
+			allTags: allTags,
+		}
+	})
 
 	for _, value := range list {
 		detour := value.Get("detour").String()
 		tag := value.Get("tag").String()
 		if detour != "" {
-			update = true
-			for _, v := range s {
-				if v.Ignored || v.Tag == detour {
-					continue
-				}
-				v.Tag = fmt.Sprintf("%v - %v [%v]", v.Tag, detour, tag)
-				v.Detour = detour
-				v.Visible = append(v.Visible, tag)
-				newSingOut = append(newSingOut, v)
+			m := mapF()
+			notAdd := map[string]struct{}{}
+
+			tags, singDList := singDetourList(detour, m.singMap)
+			for _, v := range tags {
+				notAdd[v] = struct{}{}
 			}
-			for _, v := range outs {
-				v := maps.Clone(v)
+			tags, anyDList := anyDetourList(detour, m.anyMap)
+			for _, v := range tags {
+				notAdd[v] = struct{}{}
+			}
 
-				t := utils.AnyGet[string](v, "type")
-				if t == "urltest" || t == "selector" {
+			for _, nowTag := range m.allTags {
+				if _, ok := notAdd[nowTag]; ok {
 					continue
 				}
-
-				oldTag := utils.AnyGet[string](v, "tag")
-				if _, ok := notAdd[oldTag]; ok {
-					continue
+				prevTag := ""
+				for i, singDetour := range lo.Reverse(singDList) {
+					if prevTag == "" {
+						singDetour.Detour = nowTag
+					} else {
+						singDetour.Detour = prevTag
+					}
+					if i == len(singDList)-1 {
+						singDetour.Visible = []string{tag}
+					} else {
+						singDetour.Visible = []string{"_hide"}
+					}
+					prevTag = fmt.Sprintf("%v - %v [%v]", nowTag, singDetour.Tag, tag)
+					singDetour.Tag = prevTag
+					newSingOut = append(newSingOut, singDetour)
 				}
-
-				newTag := fmt.Sprintf("%v - %v [%v]", oldTag, detour, tag)
-				utils.AnySet(&v, newTag, "tag")
-				utils.AnySet(&v, detour, "detour")
-				newAnyOut = append(newAnyOut, v)
-				newExtTag = append(newExtTag, TagWithVisible{
-					Tag:     newTag,
-					Visible: []string{tag},
-				})
+				prevTag = ""
+				for i, anyDetour := range lo.Reverse(anyDList) {
+					anyDetour := maps.Clone(anyDetour)
+					if prevTag == "" {
+						utils.AnySet(&anyDetour, nowTag, "detour")
+					} else {
+						utils.AnySet(&anyDetour, prevTag, "detour")
+					}
+					prevTag = fmt.Sprintf("%v - %v [%v]", nowTag, utils.AnyGet[string](anyDetour, "tag"), tag)
+					if i == len(anyDList)-1 {
+						newExtTag = append(newExtTag, TagWithVisible{
+							Tag:     prevTag,
+							Visible: []string{tag},
+						})
+					} else {
+						newExtTag = append(newExtTag, TagWithVisible{
+							Tag:     prevTag,
+							Visible: []string{"_hide"},
+						})
+					}
+					utils.AnySet(&anyDetour, prevTag, "tag")
+					newAnyOut = append(newAnyOut, anyDetour)
+				}
 			}
 		}
 	}
@@ -185,4 +238,34 @@ func urlTestDetourSet(s []singbox.SingBoxOut, config string, outs []map[string]a
 	}
 
 	return s, outs, tagV
+}
+
+func singDetourList(detour string, singMap map[string]singbox.SingBoxOut) ([]string, []singbox.SingBoxOut) {
+	tags := []string{detour}
+	singOut := []singbox.SingBoxOut{}
+	for {
+		s, ok := singMap[detour]
+		if !ok {
+			break
+		}
+		tags = append(tags, s.Tag)
+		singOut = append(singOut, s)
+		detour = s.Detour
+	}
+	return tags, singOut
+}
+
+func anyDetourList(detour string, anyMap map[string]map[string]any) ([]string, []map[string]any) {
+	tags := []string{detour}
+	anyOut := []map[string]any{}
+	for {
+		a, ok := anyMap[detour]
+		if !ok {
+			break
+		}
+		tags = append(tags, utils.AnyGet[string](a, "tag"))
+		anyOut = append(anyOut, a)
+		detour = utils.AnyGet[string](a, "detour")
+	}
+	return tags, anyOut
 }
