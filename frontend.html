@@ -6,8 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="[[index . 0]] ([[index . 1]])" />
     <title>clash 订阅链接转 sing-box</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/picocss/1.5.7/pico.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/picocss/2.0.6/pico.min.css"
+        integrity="sha512-UXfikgakSZBii5lkvmDCRO+IYWQhTtwMOJ+3EmGEA+oA82kvbSskgw3OI16Jx1kINgF8aqOkYE+c9h4m6muONg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.35/vue.global.min.js"
+        integrity="sha512-vzFWLyTMc9jMrXLzc/qQcbr/lJPmQBlYkLrdxmykQ9Uidz5K0Z9orAVJgA2iS0z0Ow3kpMNn+a+JZRoKK1v10g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"
         integrity="sha512-g2TeAWw5GPnX7z0Kn8nFbYfeHcvAu/tx6d6mrLe/90mkCxO+RcptyYpksUz35EO337F83bZwcmUyHiHamspkfg=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -33,8 +37,7 @@
             </nav>
         </header>
         <main class="container">
-            <p>将 clash 格式的订阅链接转换为 sing-box 的工具，转换后的链接可用于安卓版本的 <a
-                    href="https://sing-box.sagernet.org/installation/clients/sfa/">SFA</a>，ios 版本的未测试。</p>
+            <p>将 clash 格式的订阅链接转换为 sing-box 的工具，转换后的链接可用于 <a href="https://sing-box.sagernet.org/clients/">SFA</a>。</p>
             <p>在此页面粘贴由本工具生成的订阅链接（仅参数保存在链接内可用），可解析到下面的选项中</p>
             <input placeholder="订阅链接，多个链接使用 | 分割" v-model="sub" />
             <div class="grid">
@@ -76,9 +79,10 @@
                 <textarea style="resize: none;height: 25em;" v-model="config" v-show="!checkbox"></textarea>
                 <input v-model="configurl" v-show="checkbox" />
             </details>
+            <br />
             <progress v-show="inFetch"></progress>
-            <button v-show="!inFetch" @click="click">获取 sing-box 格式订阅链接</button>
             <input type="text" ref="inputRef" v-if="newsub" placeholder="" v-model="newsub">
+            <button v-show="!inFetch" @click="click" style="width: 100%;">获取 sing-box 格式订阅链接</button>
         </main>
     </div>
 </body>
