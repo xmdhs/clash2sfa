@@ -72,10 +72,6 @@
                     <input type="checkbox" id="addTag" role="switch" v-model="addTag">
                     生成的节点中添加订阅地址的域名，用以区分不同订阅的节点
                 </label>
-                <label for="switch">
-                    <input type="checkbox" id="switch" name="switch" role="switch" v-model="saveType">
-                    {{ saveTypeText }}
-                </label>
                 <textarea style="resize: none;height: 25em;" v-model="config" v-show="!checkbox"></textarea>
                 <input v-model="configurl" v-show="checkbox" />
             </details>
@@ -97,20 +93,10 @@
             const config = Vue.ref('加载中');
             const checkbox = Vue.ref(false)
             const configurl = Vue.ref('');
-            const saveType = Vue.ref(true);
-            const saveTypeText = Vue.ref('参数保存在链接内');
             const inFetch = Vue.ref(false)
             const inputRef = Vue.ref(null)
             const addTag = Vue.ref(false)
             const disableUrlTest = Vue.ref(false)
-
-            Vue.watch(saveType, v => {
-                if (v) {
-                    saveTypeText.value = "参数保存在链接内"
-                } else {
-                    saveTypeText.value = "参数保存在服务端"
-                }
-            })
 
             Vue.watch(checkbox, v => {
                 if (v) {
@@ -147,33 +133,6 @@
                 return subUrl.toString()
             }
 
-            async function saveServer() {
-                const u = new URL(new URL(location.href).origin)
-                u.pathname = "/put"
-
-                const c = config.value != oldConfig ? config.value : ""
-
-                const text = await (await fetch(u.toString(), {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        "Sub": sub.value,
-                        "Include": include.value,
-                        "Exclude": exclude.value,
-                        "Config": c,
-                        "ConfigUrl": configurl.value,
-                        "AddTag": addTag.value,
-                        "DisableUrlTest": disableUrlTest.value
-                    })
-                })).text()
-                const subUrl = new URL(new URL(location.href).origin)
-                subUrl.pathname = "/sub"
-                subUrl.searchParams.set("id", text)
-                return subUrl.toString()
-            }
-
 
             function catchSome(f, onfail) {
                 const nf = async (...a) => {
@@ -201,13 +160,7 @@
                 }
                 newsub.value = ""
                 inFetch.value = true
-                const subURL = await (async () => {
-                    if (saveType.value) {
-                        return saveParameter()
-                    } else {
-                        return await saveServer()
-                    }
-                })()
+                const subURL = saveParameter()
                 const f = await fetch(subURL)
                 if (!f.ok) {
                     const msg = await f.text()
@@ -280,8 +233,6 @@
                 click,
                 checkbox,
                 configurl,
-                saveType,
-                saveTypeText,
                 inFetch,
                 inputRef,
                 addTag,

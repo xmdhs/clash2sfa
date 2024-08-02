@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/zlib"
 	"encoding/base64"
-	"encoding/json"
 	"io"
 	"net/http"
 	"strconv"
@@ -26,29 +25,6 @@ func NewHandle(convert *service.Convert, l *slog.Logger) *Handle {
 		convert: convert,
 		l:       l,
 	}
-}
-
-func (h *Handle) PutArg(w http.ResponseWriter, r *http.Request) {
-	cxt := r.Context()
-	arg := model.ConvertArg{}
-	err := json.NewDecoder(r.Body).Decode(&arg)
-	if err != nil {
-		h.l.DebugContext(cxt, err.Error())
-		http.Error(w, err.Error(), 400)
-		return
-	}
-	if arg.Sub == "" {
-		h.l.DebugContext(cxt, "订阅链接不得为空")
-		http.Error(w, "订阅链接不得为空", 400)
-		return
-	}
-	s, err := h.convert.PutArg(cxt, arg)
-	if err != nil {
-		h.l.WarnContext(cxt, err.Error())
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	w.Write([]byte(s))
 }
 
 func Frontend(frontendByte []byte, age int) http.HandlerFunc {
@@ -88,26 +64,23 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 	rc.SetWriteDeadline(time.Now().Add(2 * time.Minute))
 
 	b, err := func() ([]byte, error) {
-		if sub != "" {
-			if config != "" {
-				b, err := zlibDecode(config)
-				if err != nil {
-					return nil, err
-				}
-				config = string(b)
+		if config != "" {
+			b, err := zlibDecode(config)
+			if err != nil {
+				return nil, err
 			}
-			a := model.ConvertArg{
-				Sub:            sub,
-				Include:        include,
-				Exclude:        exclude,
-				Config:         config,
-				ConfigUrl:      curl,
-				AddTag:         addTagb,
-				DisableUrlTest: disableUrlTestb,
-			}
-			return h.convert.MakeConfig(ctx, a)
+			config = string(b)
 		}
-		return h.convert.GetSub(ctx, id)
+		a := model.ConvertArg{
+			Sub:            sub,
+			Include:        include,
+			Exclude:        exclude,
+			Config:         config,
+			ConfigUrl:      curl,
+			AddTag:         addTagb,
+			DisableUrlTest: disableUrlTestb,
+		}
+		return h.convert.MakeConfig(ctx, a)
 	}()
 	if err != nil {
 		h.l.WarnContext(ctx, err.Error())

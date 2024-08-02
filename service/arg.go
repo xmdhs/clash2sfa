@@ -3,7 +3,6 @@ package service
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,53 +14,23 @@ import (
 	"log/slog"
 
 	"github.com/samber/lo"
-	"github.com/xmdhs/clash2sfa/db"
 	"github.com/xmdhs/clash2sfa/model"
 	"github.com/xmdhs/clash2sfa/utils"
 	"github.com/xmdhs/clash2singbox/httputils"
-	"lukechampine.com/blake3"
 )
 
 type Convert struct {
 	c          *http.Client
-	db         db.DB
 	configByte []byte
 	l          *slog.Logger
 }
 
-func NewConvert(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) *Convert {
+func NewConvert(c *http.Client, frontendByte []byte, l *slog.Logger) *Convert {
 	return &Convert{
 		c:          c,
-		db:         db,
 		configByte: frontendByte,
 		l:          l,
 	}
-}
-
-func (c *Convert) PutArg(cxt context.Context, arg model.ConvertArg) (string, error) {
-	b, err := json.Marshal(arg)
-	if err != nil {
-		return "", fmt.Errorf("PutArg: %w", err)
-	}
-	hash := blake3.Sum256(b)
-	h := hex.EncodeToString(hash[:])
-	err = c.db.PutArg(cxt, h, arg)
-	if err != nil {
-		return "", fmt.Errorf("PutArg: %w", err)
-	}
-	return h, nil
-}
-
-func (c *Convert) GetSub(cxt context.Context, id string) ([]byte, error) {
-	arg, err := c.db.GetArg(cxt, id)
-	if err != nil {
-		return nil, fmt.Errorf("GetSub: %w", err)
-	}
-	b, err := c.MakeConfig(cxt, arg)
-	if err != nil {
-		return nil, fmt.Errorf("GetSub: %w", err)
-	}
-	return b, nil
 }
 
 func (c *Convert) MakeConfig(cxt context.Context, arg model.ConvertArg) ([]byte, error) {
