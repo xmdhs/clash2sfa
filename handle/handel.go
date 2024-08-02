@@ -37,7 +37,6 @@ func Frontend(frontendByte []byte, age int) http.HandlerFunc {
 
 func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	id := r.FormValue("id")
 	config := r.FormValue("config")
 	curl := r.FormValue("configurl")
 	sub := r.FormValue("sub")
@@ -48,9 +47,9 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 	disableUrlTestb := false
 	addTagb := false
 
-	if id == "" && sub == "" {
-		h.l.DebugContext(ctx, "id 不得为空")
-		http.Error(w, "id 不得为空", 400)
+	if sub == "" {
+		h.l.DebugContext(ctx, "sub 不得为空")
+		http.Error(w, "sub 不得为空", 400)
 		return
 	}
 	if addTag == "true" {
