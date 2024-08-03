@@ -2,7 +2,8 @@
 用于将 Clash.Meta 格式的订阅链接转换为 sing-box 格式，可用于安卓版本的 [SFA](https://sing-box.sagernet.org/installation/clients/sfa/)，ios 版本未测试。
 
 ## 部署
-环境变量 `port` 控制程序运行所在的端口，若未设置默认开放在 8080 端口。
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fxmdhs%2Fclash2sfa)  一键部署到 Vercel
 
 ## docker
 ```
