@@ -13,17 +13,13 @@ FROM alpine:latest
 RUN set -ex \
     &&  apk --no-cache add ca-certificates tzdata \
     &&  mkdir /server \
-    &&  mkdir /server/db\
-    &&  adduser -H -D server\
-    &&  chown -R server /server
+    &&  chown -R nobody /server
 
-USER server
+USER nobody
 WORKDIR /server
 COPY --from=builder /build/main .
 
-WORKDIR /server/db
 
 EXPOSE 8080
-VOLUME /server/db
 
 CMD ["/server/main"]
