@@ -13,10 +13,9 @@ FROM alpine:latest
 RUN set -ex \
     &&  apk --no-cache add ca-certificates tzdata \
     &&  mkdir /server \
-    &&  adduser -H -D server\
-    &&  chown -R server /server
+    &&  chown -R nobody /server
 
-USER server
+USER nobody
 WORKDIR /server
 COPY --from=builder /build/main .
 
