@@ -30,6 +30,8 @@ github.com/xmdhs/clash2singbox v0.1.5-0.20240604103514-14bb8bce2c9b h1:djMFwEzzh
 github.com/xmdhs/clash2singbox v0.1.5-0.20240604103514-14bb8bce2c9b/go.mod h1:u2kIEBN2r26EGFSdU7mTwCqz4XG2B7Cwq8U1dVn2IXI=
 github.com/xmdhs/clash2singbox v0.1.5-0.20240716151859-3905c95104ae h1:aU9kEVIhwLtZCRDUtBbIqvidlSnkR17iOfFFu5+jelg=
 github.com/xmdhs/clash2singbox v0.1.5-0.20240716151859-3905c95104ae/go.mod h1:u2kIEBN2r26EGFSdU7mTwCqz4XG2B7Cwq8U1dVn2IXI=
+github.com/xmdhs/clash2singbox v0.1.5-0.20240808075143-d0db31ae4161 h1:xk+r+C8jCjJEVw0RBqDntF00U4if/g+2TgIMRp9Qmuw=
+github.com/xmdhs/clash2singbox v0.1.5-0.20240808075143-d0db31ae4161/go.mod h1:u2kIEBN2r26EGFSdU7mTwCqz4XG2B7Cwq8U1dVn2IXI=
 go.etcd.io/bbolt v1.3.9 h1:8x7aARPEXiXbHmtUwAIv7eV2fQFHrLLavdiJ3uzJXoI=
 go.etcd.io/bbolt v1.3.9/go.mod h1:zaO32+Ti0PK1ivdPtgMESzuzL2VPoIG1PCQNvOdo/dE=
 go.etcd.io/bbolt v1.3.10 h1:+BqfJTcCzTItrop8mq/lbzL8wSGtj94UO/3U31shqG0=
