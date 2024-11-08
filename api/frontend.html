@@ -72,6 +72,14 @@
                     <input type="checkbox" id="addTag" role="switch" v-model="addTag">
                     生成的节点中添加订阅地址的域名，用以区分不同订阅的节点
                 </label>
+                <div style="display: flex;align-items:baseline;column-gap:3em">
+                    <span style="width: max-content;">是否在出站中添加 block 和 dns</span>
+                    <select style="width: min-content;" v-model="outFields">
+                        <option selected value="">根据 UA 判断是否添加</option>
+                        <option value="1">是</option>
+                        <option value="0">否</option>
+                    </select>
+                </div>
                 <textarea style="resize: none;height: 25em;" v-model="config" v-show="!checkbox"></textarea>
                 <input v-model="configurl" v-show="checkbox" />
             </details>
@@ -97,6 +105,7 @@
             const inputRef = Vue.ref(null)
             const addTag = Vue.ref(false)
             const disableUrlTest = Vue.ref(false)
+            const outFields = Vue.ref("")
 
             Vue.watch(checkbox, v => {
                 if (v) {
@@ -129,6 +138,7 @@
                 exclude.value && subUrl.searchParams.set("exclude", exclude.value)
                 addTag.value && subUrl.searchParams.set("addTag", "true")
                 disableUrlTest.value && subUrl.searchParams.set("disableUrlTest", "true")
+                outFields.value && subUrl.searchParams.set("outFields", outFields.value)
                 subUrl.searchParams.set("sub", sub.value)
                 return subUrl.toString()
             }
@@ -216,6 +226,7 @@
                             sub.value = u.searchParams.get("sub") || sub.value
                             addTag.value = u.searchParams.get("addTag") === "true"
                             disableUrlTest.value = u.searchParams.get("disableUrlTest") === "true"
+                            outFields.value = u.searchParams.get("outFields") || outFields.value
                         } catch (error) {
                             console.log(error)
                             return
@@ -238,7 +249,8 @@
                 inFetch,
                 inputRef,
                 addTag,
-                disableUrlTest
+                disableUrlTest,
+                outFields
             }
 
         },

@@ -19,7 +19,7 @@ import (
 )
 
 func convert2sing(cxt context.Context, client *http.Client, config,
-	sub string, include, exclude string, addTag bool, l *slog.Logger, urlTestOut bool) (map[string]any, []TagWithVisible, error) {
+	sub string, include, exclude string, addTag bool, l *slog.Logger, urlTestOut bool, outFields bool) (map[string]any, []TagWithVisible, error) {
 	c, singList, tags, err := httputils.GetAny(cxt, client, sub, addTag)
 	if err != nil {
 		return nil, nil, fmt.Errorf("convert2sing: %w", err)
@@ -50,7 +50,7 @@ func convert2sing(cxt context.Context, client *http.Client, config,
 
 	nb, err := convert.PatchMap([]byte(config), s, include, exclude, lo.Map(outs, func(item map[string]any, index int) any {
 		return item
-	}), extTag, urlTestOut)
+	}), extTag, urlTestOut, outFields)
 	if err != nil {
 		return nil, nil, fmt.Errorf("convert2sing: %w", err)
 	}

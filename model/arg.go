@@ -8,4 +8,5 @@ type ConvertArg struct {
 	ConfigUrl      string
 	AddTag         bool
 	DisableUrlTest bool
+	OutFields      bool
 }
