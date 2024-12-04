@@ -72,7 +72,7 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 	}
 
 	v := utils.GetSingBoxVersion(r)
-	if v != nil && v.GreaterThan(semver.MustParse("1.10.0")) {
+	if v != nil && v.GreaterThan(semver.MustParse("1.10.99")) {
 		a.OutFields = false
 	}
 	if outFields == "0" {
