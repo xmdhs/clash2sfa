@@ -20,22 +20,20 @@ import (
 )
 
 type Convert struct {
-	c          *http.Client
-	configByte []byte
-	l          *slog.Logger
+	c *http.Client
+	l *slog.Logger
 }
 
-func NewConvert(c *http.Client, frontendByte []byte, l *slog.Logger) *Convert {
+func NewConvert(c *http.Client, l *slog.Logger) *Convert {
 	return &Convert{
-		c:          c,
-		configByte: frontendByte,
-		l:          l,
+		c: c,
+		l: l,
 	}
 }
 
-func (c *Convert) MakeConfig(cxt context.Context, arg model.ConvertArg) ([]byte, error) {
+func (c *Convert) MakeConfig(cxt context.Context, arg model.ConvertArg, configByte []byte) ([]byte, error) {
 	if arg.Config == "" && arg.ConfigUrl == "" {
-		arg.Config = string(c.configByte)
+		arg.Config = string(configByte)
 	}
 	if arg.ConfigUrl != "" {
 		b, err := httputils.HttpGet(cxt, c.c, arg.ConfigUrl, 1000*1000*10)

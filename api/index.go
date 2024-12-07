@@ -3,8 +3,9 @@ package handler
 import (
 	"bytes"
 	"context"
-	_ "embed"
+	"embed"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -19,8 +20,8 @@ import (
 	"github.com/xmdhs/clash2sfa/service"
 )
 
-//go:embed config.json.template
-var ConfigByte []byte
+//go:embed static
+var static embed.FS
 
 //go:embed frontend.html
 var FrontendByte []byte
@@ -31,17 +32,21 @@ func SetMux(h slog.Handler) *chi.Mux {
 	}
 	l := NewSlog(h)
 
-	convert := service.NewConvert(c, ConfigByte, l)
-	subH := handle.NewHandle(convert, l)
+	static := lo.Must(fs.Sub(static, "static"))
+
+	convert := service.NewConvert(c, l)
+	subH := handle.NewHandle(convert, l, static)
 
 	mux := chi.NewMux()
 
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.RealIP)
-	mux.Use(NewStructuredLogger(h))
+	mux.Use(NewStructuredLogger(l))
 
 	mux.Get("/sub", subH.Sub)
-	mux.With(middleware.NoCache).Get("/config", handle.Frontend(ConfigByte, 0))
+
+	mux.With(middleware.NoCache).Mount("/config", http.StripPrefix("/config", http.FileServerFS(static)))
+	mux.With(Cache).Mount("/static", http.StripPrefix("/static", http.FileServerFS(static)))
 
 	buildInfo, _ := debug.ReadBuildInfo()
 	var hash string
@@ -66,12 +71,12 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	SetMux(h).ServeHTTP(w, r)
 }
 
-func NewStructuredLogger(handler slog.Handler) func(next http.Handler) http.Handler {
-	return middleware.RequestLogger(&StructuredLogger{Logger: handler})
+func NewStructuredLogger(Logger *slog.Logger) func(next http.Handler) http.Handler {
+	return middleware.RequestLogger(&StructuredLogger{Logger: Logger})
 }
 
 type StructuredLogger struct {
-	Logger slog.Handler
+	Logger *slog.Logger
 }
 
 func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
@@ -89,11 +94,8 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 		slog.String("user_agent", r.UserAgent()),
 		slog.String("uri", fmt.Sprintf("%s://%s%s", scheme, r.Host, r.RequestURI)))
 
-	logger := NewSlog(l.Logger)
-
-	logger.LogAttrs(ctx, slog.LevelDebug, "request started", logFields...)
-
-	entry := StructuredLoggerEntry{Logger: logger, ctx: ctx}
+	l.Logger.LogAttrs(ctx, slog.LevelDebug, "request started", logFields...)
+	entry := StructuredLoggerEntry{Logger: l.Logger, ctx: ctx}
 
 	return &entry
 }
@@ -135,4 +137,12 @@ func NewSlog(h slog.Handler) *slog.Logger {
 		Handler: h,
 	})
 	return l
+}
+
+func Cache(h http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "max-age=3000")
+		h.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(fn)
 }
