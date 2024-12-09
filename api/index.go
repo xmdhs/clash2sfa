@@ -141,7 +141,7 @@ func NewSlog(h slog.Handler) *slog.Logger {
 
 func Cache(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "max-age=3000")
+		w.Header().Set("Cache-Control", "max-age=43200, s-maxage=43200")
 		h.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(fn)
