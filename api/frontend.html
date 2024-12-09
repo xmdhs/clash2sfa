@@ -103,7 +103,6 @@
             const include = Vue.ref('');
             const exclude = Vue.ref('');
             const config = Vue.ref('加载中');
-            const checkbox = Vue.ref(false)
             const configurl = Vue.ref('');
             const inFetch = Vue.ref(false)
             const inputRef = Vue.ref(null)
@@ -111,14 +110,6 @@
             const disableUrlTest = Vue.ref(false)
             const outFields = Vue.ref("")
             const configType = Vue.ref("")
-
-            Vue.watch(checkbox, v => {
-                if (v) {
-                    config.value = oldConfig
-                } else {
-                    configurl.value = ""
-                }
-            })
 
 
             let oldConfig = "";
@@ -216,13 +207,14 @@
                             const c = u.searchParams.get("config")
                             if (c && c != "") {
                                 const d = pako.inflate(Base64.toUint8Array(c), { to: "string" });
+                                configType.value = "2"
                                 config.value = d
                             }
                             const cu = u.searchParams.get("configurl")
                             if (cu && cu != "") {
                                 configurl.value = cu
-                                checkbox.value = true
                                 config.value = oldConfig
+                                configType.value = "3"
                             } else {
                                 configurl.value = ""
                             }
@@ -248,8 +240,13 @@
                 } else if (configType.value === "1") {
                     configurl.value = "config.json-1.11.0+.template"
                     outFields.value = "0"
-                } else {
+                } else if (configType.value === "2") {
                     configurl.value = ""
+                    if (config.value == ""){
+                        config.value = oldConfig
+                    }
+                } else if (configType.value === "3") {
+                    config.value = ""
                 }
             })
 
@@ -261,7 +258,6 @@
                 exclude,
                 newsub,
                 click,
-                checkbox,
                 configurl,
                 inFetch,
                 inputRef,
