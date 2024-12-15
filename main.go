@@ -11,7 +11,7 @@ import (
 	"log/slog"
 
 	"github.com/samber/lo"
-	handler "github.com/xmdhs/clash2sfa/api"
+	"github.com/xmdhs/clash2sfa/provide"
 )
 
 func main() {
@@ -32,7 +32,7 @@ func main() {
 		Level: level,
 	})
 
-	handler, _ := lo.Must2(handler.InitializeServer(h))
+	handler, _ := lo.Must2(provide.InitializeServer(h))
 
 	s := http.Server{
 		ReadTimeout:       30 * time.Second,

@@ -1,6 +1,6 @@
 //go:build wireinject
 
-package handler
+package provide
 
 import (
 	"log/slog"
