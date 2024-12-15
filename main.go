@@ -10,6 +10,7 @@ import (
 
 	"log/slog"
 
+	"github.com/samber/lo"
 	handler "github.com/xmdhs/clash2sfa/api"
 )
 
@@ -31,12 +32,14 @@ func main() {
 		Level: level,
 	})
 
+	handler, _ := lo.Must2(handler.InitializeServer(h))
+
 	s := http.Server{
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      30 * time.Second,
 		ReadHeaderTimeout: 10 * time.Second,
 		Addr:              port,
-		Handler:           handler.SetMux(h),
+		Handler:           handler,
 	}
 	fmt.Println(s.ListenAndServe())
 }

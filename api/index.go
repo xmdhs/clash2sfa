@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"runtime/debug"
+	"sync"
 	"text/template"
 	"time"
 
@@ -26,14 +27,19 @@ var static embed.FS
 //go:embed frontend.html
 var FrontendByte []byte
 
-func SetMux(h slog.Handler) *chi.Mux {
-	c := &http.Client{
-		Timeout: 60 * time.Second,
-	}
-	l := NewSlog(h)
+var handleOnce = sync.OnceValue[http.Handler](func() http.Handler {
+	level := &slog.LevelVar{}
+	level.Set(slog.Level(-4))
+	h := slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+		Level: level,
+	})
+	handle, _, err := InitializeServer(h)
+	lo.Must0(err)
+	return handle
+})
 
+func SetMux(h slog.Handler, c *http.Client, l *slog.Logger) *chi.Mux {
 	static := lo.Must(fs.Sub(static, "static"))
-
 	convert := service.NewConvert(c, l)
 	subH := handle.NewHandle(convert, l, static)
 
@@ -63,12 +69,7 @@ func SetMux(h slog.Handler) *chi.Mux {
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	level := &slog.LevelVar{}
-	level.Set(slog.Level(-4))
-	h := slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-		Level: level,
-	})
-	SetMux(h).ServeHTTP(w, r)
+	handleOnce().ServeHTTP(w, r)
 }
 
 func NewStructuredLogger(Logger *slog.Logger) func(next http.Handler) http.Handler {

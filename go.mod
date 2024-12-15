@@ -12,7 +12,10 @@ require (
 	github.com/xmdhs/clash2singbox v0.1.5-0.20241108153332-efa112d7d5a7
 )
 
+require filippo.io/intermediates v0.0.0-20241213023635-cbf57e734ef1 // indirect
+
 require (
+	github.com/google/wire v0.6.0
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
