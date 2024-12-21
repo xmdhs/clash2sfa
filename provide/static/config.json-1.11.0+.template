@@ -1,4 +1,4 @@
-{
+ {
     "log": {},
     "dns": {
         "servers": [
@@ -101,6 +101,10 @@
             {
                 "protocol": "dns",
                 "action": "hijack-dns"
+            },
+            {
+                "action": "resolve",
+                "strategy": "prefer_ipv4"
             },
             {
                 "clash_mode": "direct",
