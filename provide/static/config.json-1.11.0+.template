@@ -96,10 +96,6 @@
     "route": {
         "rules": [
             {
-                "action": "resolve",
-                "strategy": "prefer_ipv4"
-            },
-            {
                 "action": "sniff"
             },
             {

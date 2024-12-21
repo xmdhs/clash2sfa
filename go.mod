@@ -2,8 +2,6 @@ module github.com/xmdhs/clash2sfa
 
 go 1.22.0
 
-toolchain go1.23.2
-
 require (
 	github.com/Masterminds/semver/v3 v3.3.0
 	github.com/go-chi/chi/v5 v5.1.0
@@ -12,7 +10,7 @@ require (
 	github.com/xmdhs/clash2singbox v0.1.5-0.20241108153332-efa112d7d5a7
 )
 
-require filippo.io/intermediates v0.0.0-20241213023635-cbf57e734ef1 // indirect
+require filippo.io/intermediates v0.0.0-20241213023635-cbf57e734ef1
 
 require (
 	github.com/google/wire v0.6.0
