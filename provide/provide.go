@@ -70,12 +70,7 @@ func SetMux(h slog.Handler, c *http.Client, l *slog.Logger) *chi.Mux {
 	mux.With(Cache).Mount("/static", http.StripPrefix("/static", http.FileServerFS(static)))
 
 	buildInfo, _ := debug.ReadBuildInfo()
-	var hash string
-	for _, v := range buildInfo.Settings {
-		if v.Key == "vcs.revision" {
-			hash = v.Value
-		}
-	}
+	hash := buildInfo.Main.Version
 	bw := &bytes.Buffer{}
 	lo.Must(template.New("index").Delims("[[", "]]").Parse(string(FrontendByte))).ExecuteTemplate(bw, "index", []string{buildInfo.Main.Path, hash})
 	mux.HandleFunc("/", handle.Frontend(bw.Bytes(), 0))
