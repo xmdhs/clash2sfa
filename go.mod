@@ -1,8 +1,6 @@
 module github.com/xmdhs/clash2sfa
 
-go 1.24
-
-toolchain go1.24.0
+go 1.23.0
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.1
