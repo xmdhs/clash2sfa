@@ -78,7 +78,7 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 	var defaultConfig []byte
 
 	v := utils.GetSingBoxVersion(r)
-	if v != nil && v.GreaterThan(semver.MustParse("1.10.99")) {
+	if v == nil || v.GreaterThan(semver.MustParse("1.10.99")) {
 		a.OutFields = false
 		defaultConfig = utils.FsReadAll(h.configFs, "config.json-1.11.0+.template")
 	} else {
