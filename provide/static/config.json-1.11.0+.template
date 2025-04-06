@@ -1,4 +1,4 @@
- {
+{
     "log": {},
     "dns": {
         "servers": [
@@ -54,6 +54,10 @@
             },
             {
                 "rule_set": "geosite-cn",
+                "server": "local"
+            },
+            {
+                "rule_set": "ext-cn-domain",
                 "server": "local"
             }
         ],
@@ -148,6 +152,12 @@
                 "type": "remote",
                 "format": "source",
                 "url": "https://gist.githubusercontent.com/xmdhs/71fc5ff6ef29f5ecaf2c52b8de5c3172/raw/chrome-doh.json"
+            },
+            {
+                "tag": "ext-cn-domain",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/xmdhs/cn-domain-list/rule-set/ext-cn-list.srs"
             }
         ]
     },
