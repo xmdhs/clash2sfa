@@ -4,42 +4,32 @@ import (
 	"bytes"
 	"compress/zlib"
 	"encoding/base64"
-	"encoding/json"
 	"io"
+	"io/fs"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"log/slog"
 
-	"github.com/xmdhs/clash2sfa/db"
+	"github.com/Masterminds/semver/v3"
 	"github.com/xmdhs/clash2sfa/model"
 	"github.com/xmdhs/clash2sfa/service"
+	"github.com/xmdhs/clash2sfa/utils"
 )
 
-func PutArg(db db.DB, l *slog.Logger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cxt := r.Context()
+type Handle struct {
+	convert  *service.Convert
+	l        *slog.Logger
+	configFs fs.FS
+}
 
-		arg := model.ConvertArg{}
-		err := json.NewDecoder(r.Body).Decode(&arg)
-		if err != nil {
-			l.DebugContext(cxt, err.Error())
-			http.Error(w, err.Error(), 400)
-			return
-		}
-		if arg.Sub == "" {
-			l.DebugContext(cxt, "订阅链接不得为空")
-			http.Error(w, "订阅链接不得为空", 400)
-			return
-		}
-		s, err := service.PutArg(cxt, arg, db)
-		if err != nil {
-			l.WarnContext(cxt, err.Error())
-			http.Error(w, err.Error(), 500)
-			return
-		}
-		w.Write([]byte(s))
+func NewHandle(convert *service.Convert, l *slog.Logger, configFs fs.FS) *Handle {
+	return &Handle{
+		convert:  convert,
+		l:        l,
+		configFs: configFs,
 	}
 }
 
@@ -51,64 +41,97 @@ func Frontend(frontendByte []byte, age int) http.HandlerFunc {
 	}
 }
 
-func Sub(c *http.Client, db db.DB, frontendByte []byte, l *slog.Logger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		id := r.FormValue("id")
-		config := r.FormValue("config")
-		curl := r.FormValue("configurl")
-		sub := r.FormValue("sub")
-		include := r.FormValue("include")
-		exclude := r.FormValue("exclude")
-		addTag := r.FormValue("addTag")
-		disableUrlTest := r.FormValue("disableUrlTest")
-		disableUrlTestb := false
-		addTagb := false
+func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	config := r.FormValue("config")
+	curl := r.FormValue("configurl")
+	sub := r.FormValue("sub")
+	include := r.FormValue("include")
+	exclude := r.FormValue("exclude")
+	addTag := r.FormValue("addTag")
+	disableUrlTest := r.FormValue("disableUrlTest")
+	outFields := r.FormValue("outFields")
+	disableUrlTestb := false
+	addTagb := false
 
-		if id == "" && sub == "" {
-			l.DebugContext(ctx, "id 不得为空")
-			http.Error(w, "id 不得为空", 400)
-			return
-		}
-		if addTag == "true" {
-			addTagb = true
-		}
-		if disableUrlTest == "true" {
-			disableUrlTestb = true
-		}
+	if sub == "" {
+		h.l.DebugContext(ctx, "sub 不得为空")
+		http.Error(w, "sub 不得为空", 400)
+		return
+	}
+	if addTag == "true" {
+		addTagb = true
+	}
+	if disableUrlTest == "true" {
+		disableUrlTestb = true
+	}
+	a := model.ConvertArg{
+		Sub:            sub,
+		Include:        include,
+		Exclude:        exclude,
+		ConfigUrl:      curl,
+		AddTag:         addTagb,
+		DisableUrlTest: disableUrlTestb,
+		OutFields:      true,
+	}
 
-		rc := http.NewResponseController(w)
-		rc.SetWriteDeadline(time.Now().Add(1 * time.Minute))
+	var defaultConfig []byte
 
+	v := utils.GetSingBoxVersion(r)
+	if v == nil || v.GreaterThan(semver.MustParse("1.10.99")) {
+		a.OutFields = false
+		defaultConfig = utils.FsReadAll(h.configFs, "config.json-1.11.0+.template")
+	} else {
+		defaultConfig = utils.FsReadAll(h.configFs, "config.json.template")
+	}
+	if outFields == "0" {
+		a.OutFields = false
+	}
+	if outFields == "1" {
+		a.OutFields = true
+	}
+
+	if a.ConfigUrl != "" && !strings.HasPrefix(a.ConfigUrl, "http") {
 		b, err := func() ([]byte, error) {
-			if sub != "" {
-				if config != "" {
-					b, err := zlibDecode(config)
-					if err != nil {
-						return nil, err
-					}
-					config = string(b)
-				}
-				a := model.ConvertArg{
-					Sub:            sub,
-					Include:        include,
-					Exclude:        exclude,
-					Config:         config,
-					ConfigUrl:      curl,
-					AddTag:         addTagb,
-					DisableUrlTest: disableUrlTestb,
-				}
-				return service.MakeConfig(ctx, c, frontendByte, l, a)
+			f, err := h.configFs.Open(a.ConfigUrl)
+			if err != nil {
+				return nil, err
 			}
-			return service.GetSub(ctx, c, db, id, frontendByte, l)
+			b, err := io.ReadAll(f)
+			if err != nil {
+				return nil, err
+			}
+			return b, nil
 		}()
 		if err != nil {
-			l.WarnContext(ctx, err.Error())
-			http.Error(w, err.Error(), 500)
+			h.l.WarnContext(ctx, err.Error())
+			http.Error(w, err.Error(), 400)
 			return
 		}
-		w.Write(b)
+		a.Config = string(b)
+		a.ConfigUrl = ""
 	}
+
+	rc := http.NewResponseController(w)
+	rc.SetWriteDeadline(time.Now().Add(2 * time.Minute))
+
+	b, err := func() ([]byte, error) {
+		if config != "" {
+			b, err := zlibDecode(config)
+			if err != nil {
+				return nil, err
+			}
+			a.Config = string(b)
+		}
+		return h.convert.MakeConfig(ctx, a, defaultConfig)
+	}()
+	if err != nil {
+		h.l.WarnContext(ctx, err.Error())
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	w.Write(b)
+
 }
 
 func zlibDecode(s string) ([]byte, error) {

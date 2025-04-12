@@ -3,12 +3,7 @@ services:
   clash2sfa:
     build: .
     restart: unless-stopped
-    volumes:
-      - dbdata:/server/db
     ports:
       - "8080:8080"
     ulimits:
       nofile: 65535
-
-volumes:
-  dbdata:

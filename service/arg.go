@@ -3,62 +3,46 @@ package service
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 
 	"log/slog"
 
 	"github.com/samber/lo"
-	"github.com/xmdhs/clash2sfa/db"
 	"github.com/xmdhs/clash2sfa/model"
 	"github.com/xmdhs/clash2sfa/utils"
 	"github.com/xmdhs/clash2singbox/httputils"
-	"lukechampine.com/blake3"
 )
 
-func PutArg(cxt context.Context, arg model.ConvertArg, db db.DB) (string, error) {
-	b, err := json.Marshal(arg)
-	if err != nil {
-		return "", fmt.Errorf("PutArg: %w", err)
-	}
-	hash := blake3.Sum256(b)
-	h := hex.EncodeToString(hash[:])
-	err = db.PutArg(cxt, h, arg)
-	if err != nil {
-		return "", fmt.Errorf("PutArg: %w", err)
-	}
-	return h, nil
+type Convert struct {
+	c *http.Client
+	l *slog.Logger
 }
 
-func GetSub(cxt context.Context, c *http.Client, db db.DB, id string, frontendByte []byte, l *slog.Logger) ([]byte, error) {
-	arg, err := db.GetArg(cxt, id)
-	if err != nil {
-		return nil, fmt.Errorf("GetSub: %w", err)
+func NewConvert(c *http.Client, l *slog.Logger) *Convert {
+	return &Convert{
+		c: c,
+		l: l,
 	}
-	b, err := MakeConfig(cxt, c, frontendByte, l, arg)
-	if err != nil {
-		return nil, fmt.Errorf("GetSub: %w", err)
-	}
-	return b, nil
 }
 
-func MakeConfig(cxt context.Context, c *http.Client, frontendByte []byte, l *slog.Logger, arg model.ConvertArg) ([]byte, error) {
+func (c *Convert) MakeConfig(cxt context.Context, arg model.ConvertArg, configByte []byte) ([]byte, error) {
 	if arg.Config == "" && arg.ConfigUrl == "" {
-		arg.Config = string(frontendByte)
+		arg.Config = string(configByte)
 	}
 	if arg.ConfigUrl != "" {
-		b, err := httputils.HttpGet(cxt, c, arg.ConfigUrl, 1000*1000*10)
+		b, err := httputils.HttpGet(cxt, c.c, arg.ConfigUrl, 1000*1000*10)
 		if err != nil {
 			return nil, fmt.Errorf("MakeConfig: %w", err)
 		}
 		arg.Config = string(b)
 	}
-	m, nodeTag, err := convert2sing(cxt, c, arg.Config, arg.Sub, arg.Include, arg.Exclude, arg.AddTag, l, !arg.DisableUrlTest)
+	m, nodeTag, err := convert2sing(cxt, c.c, arg.Config, arg.Sub, arg.Include, arg.Exclude, arg.AddTag, c.l, !arg.DisableUrlTest, arg.OutFields)
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}
@@ -107,7 +91,7 @@ func filter(reg string, tags []string, need bool) ([]string, error) {
 	return tag, nil
 }
 
-func configUrlTestParser(config map[string]any, tags []string) (map[string]any, error) {
+func configUrlTestParser(config map[string]any, tags []TagWithVisible) (map[string]any, error) {
 	outL := config["outbounds"].([]any)
 
 	newOut := make([]any, 0, len(outL))
@@ -122,12 +106,30 @@ func configUrlTestParser(config map[string]any, tags []string) (map[string]any, 
 			continue
 		}
 
-		outListS := lo.FilterMap[any, string](outList, func(item any, index int) (string, bool) {
+		tag := utils.AnyGet[string](value, "tag")
+
+		outListS := lo.FilterMap(outList, func(item any, index int) (string, bool) {
 			s, ok := item.(string)
 			return s, ok
 		})
 
-		tl, err := urlTestParser(outListS, tags)
+		var tagStr []string
+
+		if utils.AnyGet[string](value, "detour") != "" {
+			tagStr = lo.FilterMap(tags, func(item TagWithVisible, index int) (string, bool) {
+				return item.Tag, len(item.Visible) != 0 && slices.Contains(item.Visible, tag)
+			})
+			m, ok := value.(map[string]any)
+			if ok {
+				delete(m, "detour")
+			}
+		} else {
+			tagStr = lo.FilterMap(tags, func(item TagWithVisible, index int) (string, bool) {
+				return item.Tag, len(item.Visible) == 0
+			})
+		}
+
+		tl, err := urlTestParser(outListS, tagStr)
 		if err != nil {
 			return nil, fmt.Errorf("customUrlTest: %w", err)
 		}

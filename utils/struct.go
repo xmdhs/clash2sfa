@@ -39,7 +39,7 @@ func AnySet(t, d any, f string) bool {
 	rv := reflect.ValueOf(t)
 
 	if rv.Kind() != reflect.Pointer {
-		return false
+		panic("must is Pointer")
 	}
 
 	rv = rv.Elem()

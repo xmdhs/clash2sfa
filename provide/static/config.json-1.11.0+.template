@@ -4,12 +4,12 @@
         "servers": [
             {
                 "tag": "remote",
-                "address": "tcp://8.8.8.8",
+                "address": "https://8.8.8.8/dns-query",
                 "detour": "select"
             },
             {
                 "tag": "local",
-                "address": "223.5.5.5",
+                "address": "https://223.5.5.5/dns-query",
                 "detour": "direct"
             },
             {
@@ -30,8 +30,9 @@
             },
             {
                 "disable_cache": true,
-                "geosite": [
-                    "category-ads-all"
+                "rule_set": [
+                    "AdGuardSDNSFilter",
+                    "chrome-doh"
                 ],
                 "server": "block"
             },
@@ -52,10 +53,13 @@
                 "server": "local"
             },
             {
-                "geosite": "cn",
+                "rule_set": "geosite-cn",
+                "server": "local"
+            },
+            {
+                "rule_set": "ext-cn-domain",
                 "server": "local"
             }
-
         ],
         "strategy": "prefer_ipv4",
         "independent_cache": true,
@@ -68,9 +72,10 @@
     "inbounds": [
         {
             "type": "tun",
-            "inet4_address": "172.19.0.1/30",
-            "inet6_address": "2001:0470:f9da:fdfa::1/64",
-            "domain_strategy": "prefer_ipv4",
+            "address": [
+                "172.19.0.1/30",
+                "fdfe:dcba:9876::1/126"
+            ],
             "strict_route": true,
             "mtu": 9000,
             "endpoint_independent_nat": true,
@@ -80,14 +85,12 @@
             "type": "socks",
             "tag": "socks-in",
             "listen": "127.0.0.1",
-            "domain_strategy": "prefer_ipv4",
             "listen_port": 2333,
             "users": []
         },
         {
             "type": "mixed",
             "tag": "mixed-in",
-            "domain_strategy": "prefer_ipv4",
             "listen": "127.0.0.1",
             "listen_port": 2334,
             "users": []
@@ -97,12 +100,15 @@
     "route": {
         "rules": [
             {
-                "geosite": "category-ads-all",
-                "outbound": "block"
+                "action": "sniff"
             },
             {
-                "port": 53,
-                "outbound": "dns-out"
+                "protocol": "dns",
+                "action": "hijack-dns"
+            },
+            {
+                "action": "resolve",
+                "strategy": "prefer_ipv4"
             },
             {
                 "clash_mode": "direct",
@@ -113,16 +119,52 @@
                 "outbound": "select"
             },
             {
-                "geoip": [
-                    "cn",
-                    "private"
-                ],
+                "ip_is_private": true,
+                "outbound": "direct"
+            },
+            {
+                "rule_set": "geoip-cn",
                 "outbound": "direct"
             }
         ],
-        "auto_detect_interface": true
+        "auto_detect_interface": true,
+        "rule_set": [
+            {
+                "tag": "geoip-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs"
+            },
+            {
+                "tag": "geosite-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/xmdhs/sing-geosite/rule-set-Loyalsoldier/geosite-geolocation-cn.srs"
+            },
+            {
+                "tag": "AdGuardSDNSFilter",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/xmdhs/sing-box-ruleset/rule-set/AdGuardSDNSFilterSingBox.srs"
+            },
+            {
+                "tag": "chrome-doh",
+                "type": "remote",
+                "format": "source",
+                "url": "https://gist.githubusercontent.com/xmdhs/71fc5ff6ef29f5ecaf2c52b8de5c3172/raw/chrome-doh.json"
+            },
+            {
+                "tag": "ext-cn-domain",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/xmdhs/cn-domain-list/rule-set/ext-cn-list.srs"
+            }
+        ]
     },
     "experimental": {
+        "cache_file": {
+            "enabled": true
+        },
         "clash_api": {
             "external_controller": "127.0.0.1:9090",
             "secret": ""
