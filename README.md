@@ -1,5 +1,6 @@
-# clash2sfa
-用于将 Clash.Meta 格式的订阅链接转换为 sing-box 格式订阅，可用于[SFA](https://sing-box.sagernet.org/zh/clients/)。
+# clash2sfav @kajsl
+用于将 Clash.Meta 格式的订阅链接转换为 sing-box 格式，可用于安卓版本的 [SFA](https://sing-box.sagernet.org/installation/clients/sfa/)，ios 版本未测试。
+
 
 ## 部署
 
