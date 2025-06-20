@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.1
-	github.com/go-chi/chi/v5 v5.2.1
+	github.com/go-chi/chi/v5 v5.2.2
 	github.com/samber/lo v1.49.1
 	github.com/tidwall/gjson v1.18.0
 	github.com/xmdhs/clash2singbox v0.1.5-0.20250106075318-ca00309ab3ab
