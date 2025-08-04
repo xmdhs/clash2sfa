@@ -14,7 +14,7 @@
         integrity="sha512-g2TeAWw5GPnX7z0Kn8nFbYfeHcvAu/tx6d6mrLe/90mkCxO+RcptyYpksUz35EO337F83bZwcmUyHiHamspkfg=="></script>
     <script src="static/base64.min.js"
         integrity="sha384-xRyCYXZrqV+SmMasrW9tuHoKclrgxrlBZ9fFexs5HDJsnSk2+pzmrJp2IaW12bQs"></script>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: 'unsafe-inline' 'unsafe-eval'"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: 'unsafe-inline' 'unsafe-eval'" />
     <style type="text/css">
         header {
             border-bottom: 1px solid #e5e5e5;
@@ -81,6 +81,7 @@
                         <option selected value="">根据 UA 自动选择</option>
                         <option value="0">1.10-</option>
                         <option value="1">1.11+</option>
+                        <option value="4">1.12+</option>
                         <option value="2">自定义模板</option>
                         <option value="3">自定义模板直链</option>
                     </select>
@@ -249,6 +250,8 @@
                     }
                 } else if (configType.value === "3") {
                     config.value = ""
+                } else if (configType.value === "4") {
+                    config.value = "config.json-1.12.0+.template"
                 }
             }
 
