@@ -42,7 +42,7 @@ func (c *Convert) MakeConfig(cxt context.Context, arg model.ConvertArg, configBy
 		}
 		arg.Config = string(b)
 	}
-	m, nodeTag, err := convert2sing(cxt, c.c, arg.Config, arg.Sub, arg.Include, arg.Exclude, arg.AddTag, c.l, !arg.DisableUrlTest, arg.OutFields)
+	m, nodeTag, err := convert2sing(cxt, c.c, arg.Config, arg.Sub, arg.Include, arg.Exclude, arg.AddTag, c.l, !arg.DisableUrlTest, arg.OutFields, arg.Ver)
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}

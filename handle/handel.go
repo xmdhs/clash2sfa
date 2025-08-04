@@ -13,10 +13,11 @@ import (
 
 	"log/slog"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/xmdhs/clash2sfa/model"
 	"github.com/xmdhs/clash2sfa/service"
 	"github.com/xmdhs/clash2sfa/utils"
+
+	cmodel "github.com/xmdhs/clash2singbox/model"
 )
 
 type Handle struct {
@@ -65,6 +66,10 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 	if disableUrlTest == "true" {
 		disableUrlTestb = true
 	}
+
+	v := utils.GetSingBoxVersion(r)
+	defaultConfig := utils.GetConfig(v, h.configFs)
+
 	a := model.ConvertArg{
 		Sub:            sub,
 		Include:        include,
@@ -73,16 +78,11 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 		AddTag:         addTagb,
 		DisableUrlTest: disableUrlTestb,
 		OutFields:      true,
+		Ver:            v,
 	}
 
-	var defaultConfig []byte
-
-	v := utils.GetSingBoxVersion(r)
-	if v == nil || v.GreaterThan(semver.MustParse("1.10.99")) {
+	if v > cmodel.SING110 {
 		a.OutFields = false
-		defaultConfig = utils.FsReadAll(h.configFs, "config.json-1.11.0+.template")
-	} else {
-		defaultConfig = utils.FsReadAll(h.configFs, "config.json.template")
 	}
 	if outFields == "0" {
 		a.OutFields = false

@@ -1,5 +1,9 @@
 package model
 
+import (
+	"github.com/xmdhs/clash2singbox/model"
+)
+
 type ConvertArg struct {
 	Sub            string
 	Include        string
@@ -9,4 +13,5 @@ type ConvertArg struct {
 	AddTag         bool
 	DisableUrlTest bool
 	OutFields      bool
+	Ver            model.SingBoxVer
 }

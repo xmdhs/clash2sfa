@@ -15,11 +15,12 @@ import (
 	"github.com/xmdhs/clash2sfa/utils"
 	"github.com/xmdhs/clash2singbox/convert"
 	"github.com/xmdhs/clash2singbox/httputils"
+	"github.com/xmdhs/clash2singbox/model"
 	"github.com/xmdhs/clash2singbox/model/singbox"
 )
 
 func convert2sing(cxt context.Context, client *http.Client, config,
-	sub string, include, exclude string, addTag bool, l *slog.Logger, urlTestOut bool, outFields bool) (map[string]any, []TagWithVisible, error) {
+	sub string, include, exclude string, addTag bool, l *slog.Logger, urlTestOut bool, outFields bool, ver model.SingBoxVer) (map[string]any, []TagWithVisible, error) {
 	c, singList, tags, err := httputils.GetAny(cxt, client, sub, addTag)
 	if err != nil {
 		return nil, nil, fmt.Errorf("convert2sing: %w", err)
@@ -39,7 +40,7 @@ func convert2sing(cxt context.Context, client *http.Client, config,
 		}
 	}
 
-	s, err := convert.Clash2sing(c)
+	s, err := convert.Clash2sing(c, ver)
 	if err != nil {
 		l.DebugContext(cxt, err.Error())
 	}
