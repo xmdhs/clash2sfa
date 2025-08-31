@@ -11,16 +11,6 @@ func AnyGet[K any](d any, f string) K {
 	var k K
 
 	switch rv.Type().Kind() {
-	case reflect.Struct:
-		f := rv.FieldByName(f)
-		if !f.IsValid() {
-			return k
-		}
-		d, ok := f.Interface().(K)
-		if !ok {
-			return k
-		}
-		return d
 	case reflect.Map, reflect.Interface:
 		m, ok := rv.Interface().(map[string]any)
 		if !ok {
@@ -35,7 +25,7 @@ func AnyGet[K any](d any, f string) K {
 	return k
 }
 
-func AnySet(t, d any, f string) bool {
+func AnySet(t, d any, fieldName string) bool {
 	rv := reflect.ValueOf(t)
 
 	if rv.Kind() != reflect.Pointer {
@@ -46,19 +36,13 @@ func AnySet(t, d any, f string) bool {
 	rv = reflect.Indirect(rv)
 
 	switch rv.Type().Kind() {
-	case reflect.Struct:
-		f := rv.FieldByName(f)
-		if !f.IsValid() {
-			return false
-		}
-		f.Set(reflect.ValueOf(d))
-
 	case reflect.Map, reflect.Interface:
 		m, ok := rv.Interface().(map[string]any)
 		if !ok {
 			return false
 		}
-		m[f] = d
+		m[fieldName] = d
+		return true
 	}
 	return true
 }
