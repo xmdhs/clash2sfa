@@ -117,7 +117,7 @@ func configUrlTestParser(config map[string]any, tags []string) (map[string]any, 
 		utils.AnySet(&value, tl, "outbounds")
 		newOut = append(newOut, value)
 	}
-	utils.AnySet(&config, filterNilOutBonds(newOut, tags), "outbounds")
+	utils.AnySet(&config, newOut, "outbounds")
 	return config, nil
 }
 
@@ -148,43 +148,4 @@ func urlTestParser(outbounds, tags []string) ([]string, error) {
 	}
 
 	return lo.Union(append(extTag, tags...)), nil
-}
-
-func filterNilOutBonds(outL []any, tags []string) []any {
-	newList := make([]any, 0, len(outL))
-	tagM := make(map[string]struct{})
-	for _, v := range tags {
-		tagM[v] = struct{}{}
-	}
-	for _, v := range outL {
-		if tag := utils.AnyGet[string](v, "tag"); tag != "" {
-			tagM[tag] = struct{}{}
-		}
-	}
-
-	for _, value := range outL {
-		atype := utils.AnyGet[string](value, "type")
-		if atype == "urltest" || atype == "selector" {
-			outList := utils.AnyGet[[]string](value, "outbounds")
-			if len(outList) == 0 {
-				delete(tagM, utils.AnyGet[string](value, "tag"))
-				continue
-			}
-			filteredList := lo.Filter(outList, func(item string, i int) bool {
-				_, ok := tagM[item]
-				return ok
-			})
-			if len(filteredList) == 0 {
-				delete(tagM, utils.AnyGet[string](value, "tag"))
-				continue
-			}
-			if len(filteredList) != len(outList) {
-				utils.AnySet(&value, filteredList, "outbounds")
-			}
-			newList = append(newList, value)
-		} else {
-			newList = append(newList, value)
-		}
-	}
-	return newList
 }
