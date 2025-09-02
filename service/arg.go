@@ -83,7 +83,7 @@ func filter(reg string, tags []string, need bool) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("filter: %w", err)
 	}
-	tag := lo.Filter[string](tags, func(item string, index int) bool {
+	tag := lo.Filter(tags, func(item string, index int) bool {
 		has := r.MatchString(item)
 		return has == need
 	})
@@ -136,9 +136,6 @@ func urlTestParser(outbounds, tags []string) ([]string, error) {
 	}
 
 	if include == "" && exclude == "" {
-		if len(extTag) != 0 {
-			return extTag, nil
-		}
 		return nil, nil
 	}
 
