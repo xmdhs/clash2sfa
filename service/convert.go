@@ -15,7 +15,7 @@ import (
 	"github.com/xmdhs/clash2singbox/model"
 )
 
-func convert2sing(cxt context.Context, client *http.Client, config,
+func convert2sing(cxt context.Context, client *http.Client, config []byte,
 	sub string, include, exclude string, addTag bool, l *slog.Logger, urlTestOut bool, outFields bool, ver model.SingBoxVer) (map[string]any, []string, error) {
 	c, singList, tags, err := httputils.GetAny(cxt, client, sub, addTag)
 	if err != nil {
@@ -75,13 +75,13 @@ type extTag struct {
 	nodeType string
 }
 
-func getExtTag(config string) ([]extTag, error) {
-	vaild := gjson.Valid(config)
+func getExtTag(config []byte) ([]extTag, error) {
+	vaild := gjson.ValidBytes(config)
 	if !vaild {
 		return nil, fmt.Errorf("getExtTag: %w", ErrFormat)
 	}
 
-	outs := gjson.Get(config, "outbounds")
+	outs := gjson.GetBytes(config, "outbounds")
 	if !outs.Exists() {
 		return nil, fmt.Errorf("getExtTag: %w", ErrFormat)
 	}

@@ -13,6 +13,7 @@ import (
 	"log/slog"
 
 	"github.com/samber/lo"
+	"github.com/tidwall/jsonc"
 	"github.com/xmdhs/clash2sfa/model"
 	"github.com/xmdhs/clash2sfa/utils"
 	"github.com/xmdhs/clash2singbox/httputils"
@@ -31,17 +32,18 @@ func NewConvert(c *http.Client, l *slog.Logger) *Convert {
 }
 
 func (c *Convert) MakeConfig(cxt context.Context, arg model.ConvertArg, configByte []byte) ([]byte, error) {
-	if arg.Config == "" && arg.ConfigUrl == "" {
-		arg.Config = string(configByte)
+	if arg.Config == nil && arg.ConfigUrl == "" {
+		arg.Config = configByte
 	}
 	if arg.ConfigUrl != "" {
 		b, err := httputils.HttpGet(cxt, c.c, arg.ConfigUrl, 1000*1000*10)
 		if err != nil {
 			return nil, fmt.Errorf("MakeConfig: %w", err)
 		}
-		arg.Config = string(b)
+		arg.Config = b
 	}
-	m, nodeTag, err := convert2sing(cxt, c.c, arg.Config, arg.Sub, arg.Include, arg.Exclude, arg.AddTag, c.l, !arg.DisableUrlTest, arg.OutFields, arg.Ver)
+	// 支持 jsonc
+	m, nodeTag, err := convert2sing(cxt, c.c, jsonc.ToJSON(arg.Config), arg.Sub, arg.Include, arg.Exclude, arg.AddTag, c.l, !arg.DisableUrlTest, arg.OutFields, arg.Ver)
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}

@@ -48,17 +48,7 @@
                 <summary>配置文件模板</summary>
                 <hr />
                 <span>可通过设置 urltest / selector 的 outbounds，来自定义生成配置文件后其中包含的节点。且可以在此之上设置 detour。</span>
-                <span>类似：</span>
-                <pre>{
-    "tag": "selector",
-    "type": "selector",
-    "outbounds": [
-        "include: 新加坡",
-        "exclude: 香港"
-    ]
-}</pre>
-                <span>均可以使用正则筛选</span>
-                <br />
+                <span><a href="/static/config.json-group.jsonc" target="_blank">复杂分流模板示例</a></span>
                 <label>
                     <input type="checkbox" role="switch" v-model="disableUrlTest">
                     禁用默认生成的 urltest 和 selector

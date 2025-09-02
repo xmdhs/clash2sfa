@@ -108,7 +108,7 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), 400)
 			return
 		}
-		a.Config = string(b)
+		a.Config = b
 		a.ConfigUrl = ""
 	}
 
@@ -121,7 +121,7 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return nil, err
 			}
-			a.Config = string(b)
+			a.Config = b
 		}
 		return h.convert.MakeConfig(ctx, a, defaultConfig)
 	}()

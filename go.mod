@@ -12,6 +12,8 @@ require (
 
 require filippo.io/intermediates v0.0.0-20250831023738-bfff8d75f09c
 
+require github.com/tidwall/jsonc v0.3.2
+
 require (
 	github.com/google/wire v0.7.0
 	github.com/tidwall/match v1.1.1 // indirect
