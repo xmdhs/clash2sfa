@@ -112,10 +112,20 @@
         {
             "tag": "香港",
             "type": "selector",
+            // 可以在策略组上使用 detour，会自动处理成 sing-box 能接受的格式
+            // "detour": "任意一个出站节点",
             "outbounds": [
                 "香港自动选择",
                 "include: 🇭🇰|HK|hk|香港|港|HongKong"
             ]
+        },
+        {
+            "type": "shadowsocks",
+            "tag": "任意一个出站节点",
+            "server": "127.0.0.1",
+            "server_port": 1080,
+            "method": "2022-blake3-aes-128-gcm",
+            "password": "8JCsPssfgS8tiRwiMlhARg=="
         },
         {
             "tag": "香港自动选择",

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 
 	"log/slog"
@@ -92,7 +93,7 @@ func filter(reg string, tags []string, need bool) ([]string, error) {
 	return tag, nil
 }
 
-func configUrlTestParser(config map[string]any, tags []string) (map[string]any, error) {
+func configUrlTestParser(config map[string]any, tags []TagWithVisible) (map[string]any, error) {
 	outL := config["outbounds"].([]any)
 
 	newOut := make([]any, 0, len(outL))
@@ -104,11 +105,30 @@ func configUrlTestParser(config map[string]any, tags []string) (map[string]any, 
 			newOut = append(newOut, value)
 			continue
 		}
+
+		tag := utils.AnyGet[string](value, "tag")
+
 		outListS := lo.FilterMap(outList, func(item any, index int) (string, bool) {
 			s, ok := item.(string)
 			return s, ok
 		})
-		tl, err := urlTestParser(outListS, tags)
+		var tagStr []string
+
+		if tag != "" && utils.AnyGet[string](value, "detour") != "" {
+			tagStr = lo.FilterMap(tags, func(item TagWithVisible, index int) (string, bool) {
+				return item.Tag, len(item.Visible) != 0 && slices.Contains(item.Visible, tag)
+			})
+			m, ok := value.(map[string]any)
+			if ok {
+				delete(m, "detour")
+			}
+		} else {
+			tagStr = lo.FilterMap(tags, func(item TagWithVisible, index int) (string, bool) {
+				return item.Tag, len(item.Visible) == 0
+			})
+		}
+
+		tl, err := urlTestParser(outListS, tagStr)
 		if err != nil {
 			return nil, fmt.Errorf("customUrlTest: %w", err)
 		}
