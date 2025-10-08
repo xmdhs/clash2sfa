@@ -18,18 +18,6 @@
                 "tag": "fakeip",
                 "inet4_range": "198.18.0.0/15",
                 "inet6_range": "fc00::/18"
-            },
-            {
-                "tag": "美国",
-                "type": "https",
-                "server": "8.8.8.8",
-                "detour": "美国"
-            },
-            {
-                "tag": "香港",
-                "type": "https",
-                "server": "8.8.8.8",
-                "detour": "香港"
             }
         ],
         "rules": [
@@ -67,15 +55,6 @@
             {
                 "rule_set": "ext-cn-domain",
                 "server": "local"
-            },
-            {
-                "rule_set": "ai",
-                "server": "美国"
-            },
-            {
-                // 默认使用全局 DNS 查询，可能返回非目标地区的 CDN IP。通过 DNS 规则可指定查询服务器 IP，以优化地域解析；如果不在乎速度，可以不写。
-                "rule_set": "google",
-                "server": "香港"
             }
         ],
         "strategy": "prefer_ipv4",
@@ -169,11 +148,7 @@
             {
                 "protocol": "dns",
                 "action": "hijack-dns"
-            },
-            {
-                "action": "resolve",
-                "strategy": "prefer_ipv4"
-            },
+            },            
             {
                 "clash_mode": "direct",
                 "outbound": "direct"
@@ -189,6 +164,10 @@
             {
                 "rule_set": "google",
                 "outbound": "香港"
+            },
+            {
+                "action": "resolve",
+                "strategy": "prefer_ipv4"
             },
             {
                 "ip_is_private": true,
@@ -257,4 +236,5 @@
             "secret": ""
         }
     }
+
 }
