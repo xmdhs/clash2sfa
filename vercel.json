@@ -5,5 +5,6 @@
         "src": "/(.*)",
         "dest": "/api"
       }
-    ]
+    ],
+    "regions": ["sin1"]
   }
