@@ -27,6 +27,8 @@ github.com/xmdhs/clash2singbox v0.1.5-0.20250901175830-7b237eef7786 h1:agRFckjVj
 github.com/xmdhs/clash2singbox v0.1.5-0.20250901175830-7b237eef7786/go.mod h1:v5Kl3ZsY7KkoK7uY9oC56uEdXRp0upRxNEWX9Us8siA=
 github.com/xmdhs/clash2singbox v0.1.5-0.20251030125021-5997097e9e35 h1:yFCw3NMO2/L2GNziFHG0wrp2HH6svO54MSzOoey8lAM=
 github.com/xmdhs/clash2singbox v0.1.5-0.20251030125021-5997097e9e35/go.mod h1:v5Kl3ZsY7KkoK7uY9oC56uEdXRp0upRxNEWX9Us8siA=
+github.com/xmdhs/clash2singbox v0.1.5-0.20251030125742-1891cde59f02 h1:Sug8tSv4hcVqSS6euKbbdqBDpuDX5v1Qw39GcvZ9Zuk=
+github.com/xmdhs/clash2singbox v0.1.5-0.20251030125742-1891cde59f02/go.mod h1:v5Kl3ZsY7KkoK7uY9oC56uEdXRp0upRxNEWX9Us8siA=
 golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b h1:DXr+pvt3nC887026GRP39Ej11UATqWDmWuS99x26cD0=
 golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b/go.mod h1:4QTo5u+SEIbbKW1RacMZq1YEfOBqeXa19JeshGi+zc4=
 golang.org/x/sync v0.16.0 h1:ycBJEhp9p4vXvUZNszeOq0kGTPghopOL8q0fq3vstxw=
