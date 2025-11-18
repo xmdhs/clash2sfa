@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 	"text/template"
 	"time"
 
@@ -53,6 +54,36 @@ func NewSlog(h slog.Handler) *slog.Logger {
 	return l
 }
 
+type html struct {
+	Path    string
+	Hash    string
+	Version string
+}
+
+var info html
+
+func init() {
+	var hash string
+	buildInfo, ok := debug.ReadBuildInfo()
+	if ok {
+		for _, v := range buildInfo.Settings {
+			if v.Key == "vcs.revision" {
+				hash = v.Value
+				break
+			}
+		}
+	}
+	info = html{
+		Path: buildInfo.Main.Path,
+		Hash: hash,
+	}
+	if hash != "" {
+		info.Version = hash
+	} else {
+		info.Version = strconv.FormatInt(time.Now().Unix(), 10)
+	}
+}
+
 func SetMux(h slog.Handler, c *http.Client, l *slog.Logger) *chi.Mux {
 	static := lo.Must(fs.Sub(static, "static"))
 	convert := service.NewConvert(c, l)
@@ -66,13 +97,11 @@ func SetMux(h slog.Handler, c *http.Client, l *slog.Logger) *chi.Mux {
 
 	mux.Get("/sub", subH.Sub)
 
-	mux.With(middleware.NoCache).Mount("/config", http.StripPrefix("/config", http.FileServerFS(static)))
+	mux.With(Cache).Mount("/config", http.StripPrefix("/config", http.FileServerFS(static)))
 	mux.With(Cache).Mount("/static", http.StripPrefix("/static", http.FileServerFS(static)))
 
-	buildInfo, _ := debug.ReadBuildInfo()
-	hash := buildInfo.Main.Version
 	bw := &bytes.Buffer{}
-	lo.Must(template.New("index").Delims("[[", "]]").Parse(string(FrontendByte))).ExecuteTemplate(bw, "index", []string{buildInfo.Main.Path, hash})
+	lo.Must(template.New("index").Delims("[[", "]]").Parse(string(FrontendByte))).ExecuteTemplate(bw, "index", info)
 	mux.HandleFunc("/", handle.Frontend(bw.Bytes(), 0))
 
 	return mux
