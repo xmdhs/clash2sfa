@@ -9,8 +9,8 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"os"
 	"runtime/debug"
-	"strconv"
 	"text/template"
 	"time"
 
@@ -55,9 +55,8 @@ func NewSlog(h slog.Handler) *slog.Logger {
 }
 
 type html struct {
-	Path    string
-	Hash    string
-	Version string
+	Path string
+	Hash string
 }
 
 var info html
@@ -78,9 +77,7 @@ func init() {
 		Hash: hash,
 	}
 	if hash != "" {
-		info.Version = hash
-	} else {
-		info.Version = strconv.FormatInt(time.Now().Unix(), 10)
+		info.Hash = os.Getenv("VERCEL_GIT_COMMIT_SHA")
 	}
 }
 
