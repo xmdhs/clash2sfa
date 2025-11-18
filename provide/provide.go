@@ -76,7 +76,7 @@ func init() {
 		Path: buildInfo.Main.Path,
 		Hash: hash,
 	}
-	if hash != "" {
+	if hash == "" {
 		info.Hash = os.Getenv("VERCEL_GIT_COMMIT_SHA")
 	}
 }
