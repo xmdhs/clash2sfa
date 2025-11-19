@@ -1,5 +1,5 @@
 import { createApp, ref, nextTick } from "./vue.esm-browser.prod.mjs"
-import { Base64 } from "./base64.mjs"
+import { Base64 } from "./base64.min.mjs"
 
 // Compression Stream API 辅助函数
 async function compressString(str) {
