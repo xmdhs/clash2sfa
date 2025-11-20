@@ -165,6 +165,7 @@
                 "rule_set": "google",
                 "outbound": "香港"
             },
+            // 放置在域名规则之后，ip规则之前，可以让域名直接发送到节点服务器解析，而非通过本地的 dns 模块解析，从而解析出更合适的 ip
             {
                 "action": "resolve",
                 "strategy": "prefer_ipv4"
@@ -238,3 +239,4 @@
     }
 
 }
+
