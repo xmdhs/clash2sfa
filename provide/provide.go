@@ -99,7 +99,7 @@ func SetMux(h slog.Handler, c *http.Client, l *slog.Logger) *chi.Mux {
 
 	bw := &bytes.Buffer{}
 	lo.Must(template.New("index").Delims("[[", "]]").Parse(string(FrontendByte))).ExecuteTemplate(bw, "index", info)
-	mux.With(Cache).HandleFunc("/", handle.Frontend(bw.Bytes(), 0))
+	mux.With(Cache).HandleFunc("/", handle.Frontend(bw.Bytes()))
 
 	return mux
 }

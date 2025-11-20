@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -34,10 +33,8 @@ func NewHandle(convert *service.Convert, l *slog.Logger, configFs fs.FS) *Handle
 	}
 }
 
-func Frontend(frontendByte []byte, age int) http.HandlerFunc {
-	sage := strconv.Itoa(age)
+func Frontend(frontendByte []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "max-age="+sage)
 		w.Write(frontendByte)
 	}
 }
