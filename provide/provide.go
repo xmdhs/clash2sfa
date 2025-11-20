@@ -99,7 +99,7 @@ func SetMux(h slog.Handler, c *http.Client, l *slog.Logger) *chi.Mux {
 
 	bw := &bytes.Buffer{}
 	lo.Must(template.New("index").Delims("[[", "]]").Parse(string(FrontendByte))).ExecuteTemplate(bw, "index", info)
-	mux.HandleFunc("/", handle.Frontend(bw.Bytes(), 0))
+	mux.With(Cache).HandleFunc("/", handle.Frontend(bw.Bytes(), 0))
 
 	return mux
 }
@@ -167,7 +167,7 @@ func (w *warpSlogHandle) Handle(ctx context.Context, r slog.Record) error {
 
 func Cache(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "max-age=43200, s-maxage=43200")
+		w.Header().Set("Cache-Control", "public, max-age=43200, s-maxage=43200")
 		h.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(fn)
