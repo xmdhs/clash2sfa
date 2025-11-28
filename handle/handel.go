@@ -120,7 +120,7 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 			}
 			a.Config = b
 		}
-		return h.convert.MakeConfig(ctx, a, defaultConfig)
+		return h.convert.MakeConfig(ctx, a, defaultConfig, r.UserAgent())
 	}()
 	if err != nil {
 		h.l.WarnContext(ctx, err.Error())

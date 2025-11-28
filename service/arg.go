@@ -32,7 +32,7 @@ func NewConvert(c *http.Client, l *slog.Logger) *Convert {
 	}
 }
 
-func (c *Convert) MakeConfig(cxt context.Context, arg model.ConvertArg, configByte []byte) ([]byte, error) {
+func (c *Convert) MakeConfig(cxt context.Context, arg model.ConvertArg, configByte []byte, userAgent string) ([]byte, error) {
 	if arg.Config == nil && arg.ConfigUrl == "" {
 		arg.Config = configByte
 	}
@@ -52,14 +52,28 @@ func (c *Convert) MakeConfig(cxt context.Context, arg model.ConvertArg, configBy
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}
-	bw := &bytes.Buffer{}
-	jw := json.NewEncoder(bw)
-	jw.SetIndent("", "    ")
-	err = jw.Encode(m)
-	if err != nil {
-		return nil, fmt.Errorf("MakeConfig: %w", err)
+
+	// 根据 User-Agent 决定是否格式化 JSON
+	var result []byte
+	if utils.IsBrowser(userAgent) {
+		// 浏览器请求，返回格式化的 JSON
+		bw := &bytes.Buffer{}
+		jw := json.NewEncoder(bw)
+		jw.SetIndent("", "    ")
+		err = jw.Encode(m)
+		if err != nil {
+			return nil, fmt.Errorf("MakeConfig: %w", err)
+		}
+		result = bw.Bytes()
+	} else {
+		// 非浏览器请求，返回压缩的 JSON
+		result, err = json.Marshal(m)
+		if err != nil {
+			return nil, fmt.Errorf("MakeConfig: %w", err)
+		}
 	}
-	return bw.Bytes(), nil
+
+	return result, nil
 }
 
 var (
