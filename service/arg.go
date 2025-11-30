@@ -108,7 +108,10 @@ func filter(reg string, tags []string, need bool) ([]string, error) {
 }
 
 func configUrlTestParser(config map[string]any, tags []TagWithVisible) (map[string]any, error) {
-	outL := config["outbounds"].([]any)
+	outL, ok := config["outbounds"].([]any)
+	if !ok {
+		return nil, fmt.Errorf("configUrlTestParser: outbounds is not []any or missing")
+	}
 
 	newOut := make([]any, 0, len(outL))
 

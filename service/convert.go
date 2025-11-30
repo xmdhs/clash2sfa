@@ -185,13 +185,14 @@ func urlTestDetourSet(s []singbox.SingBoxOut, config []byte, outs []map[string]a
 					continue
 				}
 				prevTag := ""
-				for i, singDetour := range lo.Reverse(singDList) {
+				for i := len(singDList) - 1; i >= 0; i-- {
+					singDetour := singDList[i]
 					if prevTag == "" {
 						singDetour.Detour = nowTag
 					} else {
 						singDetour.Detour = prevTag
 					}
-					if i == len(singDList)-1 {
+					if i == 0 {
 						singDetour.Visible = []string{tag}
 					} else {
 						singDetour.Visible = []string{"_hide"}
@@ -201,15 +202,15 @@ func urlTestDetourSet(s []singbox.SingBoxOut, config []byte, outs []map[string]a
 					newSingOut = append(newSingOut, singDetour)
 				}
 				prevTag = ""
-				for i, anyDetour := range lo.Reverse(anyDList) {
-					anyDetour := maps.Clone(anyDetour)
+				for i := len(anyDList) - 1; i >= 0; i-- {
+					anyDetour := maps.Clone(anyDList[i])
 					if prevTag == "" {
 						utils.AnySet(&anyDetour, nowTag, "detour")
 					} else {
 						utils.AnySet(&anyDetour, prevTag, "detour")
 					}
 					prevTag = fmt.Sprintf("%v - %v [%v]", nowTag, utils.AnyGet[string](anyDetour, "tag"), tag)
-					if i == len(anyDList)-1 {
+					if i == 0 {
 						newExtTag = append(newExtTag, TagWithVisible{
 							Tag:     prevTag,
 							Visible: []string{tag},
