@@ -29,7 +29,7 @@ func AnySet(t, d any, fieldName string) bool {
 	rv := reflect.ValueOf(t)
 
 	if rv.Kind() != reflect.Pointer {
-		panic("must is Pointer")
+		return false
 	}
 
 	rv = rv.Elem()
@@ -38,7 +38,7 @@ func AnySet(t, d any, fieldName string) bool {
 	switch rv.Type().Kind() {
 	case reflect.Map, reflect.Interface:
 		m, ok := rv.Interface().(map[string]any)
-		if !ok {
+		if !ok || m == nil {
 			return false
 		}
 		m[fieldName] = d

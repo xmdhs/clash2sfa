@@ -136,7 +136,7 @@ func configUrlTestParser(config map[string]any, tags []TagWithVisible) (map[stri
 				return item.Tag, len(item.Visible) != 0 && slices.Contains(item.Visible, tag)
 			})
 			m, ok := value.(map[string]any)
-			if ok {
+			if ok && m != nil {
 				delete(m, "detour")
 			}
 		} else {
@@ -147,7 +147,7 @@ func configUrlTestParser(config map[string]any, tags []TagWithVisible) (map[stri
 
 		tl, err := urlTestParser(outListS, tagStr)
 		if err != nil {
-			return nil, fmt.Errorf("customUrlTest: %w", err)
+			return nil, fmt.Errorf("configUrlTestParser: %w", err)
 		}
 		if tl == nil {
 			newOut = append(newOut, value)
