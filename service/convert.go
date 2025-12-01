@@ -126,11 +126,12 @@ func urlTestDetourSet(s []singbox.SingBoxOut, config []byte, outs []map[string]a
 
 	list := j.Get("outbounds.#(outbounds)#").Array()
 
+	update := false
+
 	type OnceValue struct {
 		singMap map[string]singbox.SingBoxOut
 		anyMap  map[string]map[string]any
 		allTags []string
-		update  bool
 	}
 
 	mapF := sync.OnceValue(func() OnceValue {
@@ -155,11 +156,11 @@ func urlTestDetourSet(s []singbox.SingBoxOut, config []byte, outs []map[string]a
 			allTags = append(allTags, k)
 		}
 
+		update = true
 		return OnceValue{
 			singMap: singMap,
 			anyMap:  anyMap,
 			allTags: allTags,
-			update:  true,
 		}
 	})
 
@@ -233,8 +234,7 @@ func urlTestDetourSet(s []singbox.SingBoxOut, config []byte, outs []map[string]a
 		}
 	})
 
-	m := mapF()
-	if m.update {
+	if update {
 		return append(s, newSingOut...), append(outs, newAnyOut...), append(tagV, newExtTag...)
 	}
 
@@ -244,25 +244,14 @@ func urlTestDetourSet(s []singbox.SingBoxOut, config []byte, outs []map[string]a
 func singDetourList(detour string, singMap map[string]singbox.SingBoxOut) ([]string, []singbox.SingBoxOut) {
 	tags := []string{detour}
 	singOut := []singbox.SingBoxOut{}
-	visited := make(map[string]bool)
-	visited[detour] = true
-
 	for {
 		s, ok := singMap[detour]
 		if !ok {
 			break
 		}
-		// 检查循环引用
-		if visited[s.Tag] {
-			break
-		}
-		visited[s.Tag] = true
 		tags = append(tags, s.Tag)
 		singOut = append(singOut, s)
 		detour = s.Detour
-		if detour == "" {
-			break
-		}
 	}
 	return tags, singOut
 }
@@ -270,26 +259,14 @@ func singDetourList(detour string, singMap map[string]singbox.SingBoxOut) ([]str
 func anyDetourList(detour string, anyMap map[string]map[string]any) ([]string, []map[string]any) {
 	tags := []string{detour}
 	anyOut := []map[string]any{}
-	visited := make(map[string]bool)
-	visited[detour] = true
-
 	for {
 		a, ok := anyMap[detour]
 		if !ok {
 			break
 		}
-		tag := utils.AnyGet[string](a, "tag")
-		// 检查循环引用
-		if visited[tag] {
-			break
-		}
-		visited[tag] = true
-		tags = append(tags, tag)
+		tags = append(tags, utils.AnyGet[string](a, "tag"))
 		anyOut = append(anyOut, a)
 		detour = utils.AnyGet[string](a, "detour")
-		if detour == "" {
-			break
-		}
 	}
 	return tags, anyOut
 }
