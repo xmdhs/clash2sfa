@@ -1,4 +1,5 @@
 {
+    "$schema": "https://gist.githubusercontent.com/artiga033/fea992d95ad44dc8d024b229223b1002/raw/sing-box.schema.json",
     "log": {},
     "dns": {
         "servers": [
@@ -85,15 +86,13 @@
             "type": "socks",
             "tag": "socks-in",
             "listen": "127.0.0.1",
-            "listen_port": 2333,
-            "users": []
+            "listen_port": 2333
         },
         {
             "type": "mixed",
             "tag": "mixed-in",
             "listen": "127.0.0.1",
-            "listen_port": 2334,
-            "users": []
+            "listen_port": 2334
         }
     ],
     "outbounds": [],
