@@ -50,7 +50,7 @@ createApp({
         let oldConfig = "";
 
         (async () => {
-            const f = await fetch("/config/config.json-1.12.0+.template?" +  window.version ?? "")
+            const f = await fetch("/config/config.json-1.12.0+.template?" + window.version ?? "")
             config.value = await f.text()
             oldConfig = config.value
         })();
@@ -184,7 +184,10 @@ createApp({
             } else if (configType.value === "3") {
                 config.value = ""
             } else if (configType.value === "4") {
-                config.value = "config.json-1.12.0+.template"
+                configurl.value = "config.json-1.12.0+.template"
+            } else {
+                configurl.value = ""
+                config.value = ""
             }
         }
 
