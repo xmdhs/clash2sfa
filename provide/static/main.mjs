@@ -170,24 +170,27 @@ createApp({
 
         function onChange() {
             outFields.value = ""
+            if (configType.value != "2") {
+                config.value = ""
+            }
+            if (configType.value != "3") {
+                configurl.value = ""
+            }
             if (configType.value === "0") {
                 configurl.value = "config.json.template"
                 outFields.value = "1"
-            } else if (configType.value === "1") {
+            }
+            if (configType.value === "1") {
                 configurl.value = "config.json-1.11.0+.template"
                 outFields.value = "0"
-            } else if (configType.value === "2") {
-                configurl.value = ""
+            }
+            if (configType.value === "2") {
                 if (config.value == "") {
                     config.value = oldConfig
                 }
-            } else if (configType.value === "3") {
-                config.value = ""
-            } else if (configType.value === "4") {
+            }
+            if (configType.value === "4") {
                 configurl.value = "config.json-1.12.0+.template"
-            } else {
-                configurl.value = ""
-                config.value = ""
             }
         }
 
