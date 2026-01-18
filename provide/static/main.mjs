@@ -184,14 +184,16 @@ createApp({
                 configurl.value = "config.json-1.11.0+.template"
                 outFields.value = "0"
             }
+            if (configType.value === "4") {
+                configurl.value = "config.json-1.12.0+.template"
+                outFields.value = "0"
+            }
             if (configType.value === "2") {
                 if (config.value == "") {
                     config.value = oldConfig
                 }
             }
-            if (configType.value === "4") {
-                configurl.value = "config.json-1.12.0+.template"
-            }
+
         }
 
 
