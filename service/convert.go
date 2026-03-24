@@ -41,7 +41,7 @@ func convert2sing(cxt context.Context, client *http.Client, config []byte,
 		}
 	}
 
-	s, err := convert.Clash2sing(c, ver)
+	s, eps, err := convert.Clash2sing(c, ver)
 	if err != nil {
 		l.DebugContext(cxt, err.Error())
 	}
@@ -50,7 +50,7 @@ func convert2sing(cxt context.Context, client *http.Client, config []byte,
 
 	s, outs, extTagWithV := urlTestDetourSet(s, config, outs, extTag)
 
-	nb, err := convert.PatchMap([]byte(config), s, include, exclude, lo.Map(outs, func(item map[string]any, index int) any {
+	nb, err := convert.PatchMap([]byte(config), s, eps, include, exclude, lo.Map(outs, func(item map[string]any, index int) any {
 		return item
 	}), extTag, urlTestOut, outFields)
 	if err != nil {
