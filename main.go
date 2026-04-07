@@ -17,9 +17,11 @@ import (
 func main() {
 	port := ":8080"
 	if p := os.Getenv("PORT"); p != "" {
+		port = ":" + p
+	}
+	if p := os.Getenv("port"); p != "" {
 		port = p
 	}
-
 	levels := os.Getenv("level")
 	leveln, err := strconv.Atoi(levels)
 	if err != nil {
