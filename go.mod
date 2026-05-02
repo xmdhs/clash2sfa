@@ -12,17 +12,16 @@ require (
 
 require filippo.io/intermediates v0.0.0-20260430031844-579426676a8e
 
-require (
-	github.com/samber/do/v2 v2.0.0
-	github.com/tidwall/jsonc v0.3.3
-)
-
-require github.com/samber/go-type-to-string v1.8.0 // indirect
+require github.com/tidwall/jsonc v0.3.3
 
 require (
+	github.com/kr/pretty v0.1.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
+	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

@@ -17,7 +17,6 @@ import (
 	"filippo.io/intermediates"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/samber/do/v2"
 	"github.com/samber/lo"
 	"github.com/xmdhs/clash2sfa/handle"
 	"github.com/xmdhs/clash2sfa/service"
@@ -28,45 +27,6 @@ var static embed.FS
 
 //go:embed frontend.html
 var FrontendByte []byte
-
-func RegisterProviders(i do.Injector, h slog.Handler) {
-	do.ProvideValue(i, h)
-	do.Provide(i, NewClient)
-	do.Provide(i, NewSlog)
-	do.Provide(i, SetMux)
-	do.Provide(i, NewHttpServer)
-}
-
-func NewHandler(h slog.Handler) (http.Handler, error) {
-	injector := do.New()
-	RegisterProviders(injector, h)
-	return do.Invoke[http.Handler](injector)
-}
-
-func NewClient(i do.Injector) (*http.Client, error) {
-	tr := http.DefaultTransport.(*http.Transport).Clone()
-	tr.TLSClientConfig = &tls.Config{
-		InsecureSkipVerify: true,
-		VerifyConnection:   intermediates.VerifyConnection,
-	}
-	return &http.Client{
-		Transport: tr,
-		Timeout:   60 * time.Second,
-	}, nil
-}
-
-func NewHttpServer(i do.Injector) (http.Handler, error) {
-	m := do.MustInvoke[*chi.Mux](i)
-	return m, nil
-}
-
-func NewSlog(i do.Injector) (*slog.Logger, error) {
-	h := do.MustInvoke[slog.Handler](i)
-	l := slog.New(&warpSlogHandle{
-		Handler: h,
-	})
-	return l, nil
-}
 
 type html struct {
 	Path string
@@ -95,24 +55,50 @@ func init() {
 	}
 }
 
-func SetMux(i do.Injector) (*chi.Mux, error) {
-	c := do.MustInvoke[*http.Client](i)
-	l := do.MustInvoke[*slog.Logger](i)
+func NewApp(h slog.Handler) (http.Handler, error) {
+	client := newClient()
+	logger := newSlog(h)
+	mux, err := newMux(client, logger)
+	if err != nil {
+		return nil, err
+	}
+	return mux, nil
+}
 
-	static := lo.Must(fs.Sub(static, "static"))
+func newClient() *http.Client {
+	tr := http.DefaultTransport.(*http.Transport).Clone()
+	tr.TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: true,
+		VerifyConnection:   intermediates.VerifyConnection,
+	}
+	return &http.Client{
+		Transport: tr,
+		Timeout:   60 * time.Second,
+	}
+}
+
+func newSlog(h slog.Handler) *slog.Logger {
+	l := slog.New(&warpSlogHandle{
+		Handler: h,
+	})
+	return l
+}
+
+func newMux(c *http.Client, l *slog.Logger) (*chi.Mux, error) {
+	staticFS := lo.Must(fs.Sub(static, "static"))
 	convert := service.NewConvert(c, l)
-	subH := handle.NewHandle(convert, l, static)
+	subH := handle.NewHandle(convert, l, staticFS)
 
 	mux := chi.NewMux()
 
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.RealIP)
-	mux.Use(NewStructuredLogger(l))
+	mux.Use(newStructuredLogger(l))
 
 	mux.Get("/sub", subH.Sub)
 
-	mux.With(Cache).Mount("/config", http.StripPrefix("/config", http.FileServerFS(static)))
-	mux.With(Cache).Mount("/static", http.StripPrefix("/static", http.FileServerFS(static)))
+	mux.With(Cache).Mount("/config", http.StripPrefix("/config", http.FileServerFS(staticFS)))
+	mux.With(Cache).Mount("/static", http.StripPrefix("/static", http.FileServerFS(staticFS)))
 
 	bw := &bytes.Buffer{}
 	lo.Must(template.New("index").Delims("[[", "]]").Parse(string(FrontendByte))).ExecuteTemplate(bw, "index", info)
@@ -121,7 +107,7 @@ func SetMux(i do.Injector) (*chi.Mux, error) {
 	return mux, nil
 }
 
-func NewStructuredLogger(Logger *slog.Logger) func(next http.Handler) http.Handler {
+func newStructuredLogger(Logger *slog.Logger) func(next http.Handler) http.Handler {
 	return middleware.RequestLogger(&StructuredLogger{Logger: Logger})
 }
 

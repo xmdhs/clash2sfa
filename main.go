@@ -10,7 +10,6 @@ import (
 
 	"log/slog"
 
-	"github.com/samber/do/v2"
 	"github.com/xmdhs/clash2sfa/provide"
 )
 
@@ -34,9 +33,11 @@ func main() {
 		Level: level,
 	})
 
-	injector := do.New()
-	provide.RegisterProviders(injector, h)
-	handler := do.MustInvoke[http.Handler](injector)
+	handler, err := provide.NewApp(h)
+	if err != nil {
+		slog.Error("failed to create app", "error", err)
+		os.Exit(1)
+	}
 
 	s := http.Server{
 		ReadTimeout:       30 * time.Second,
