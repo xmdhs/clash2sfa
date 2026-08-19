@@ -10,6 +10,10 @@ func AnyGet[K any](d any, f string) K {
 
 	var k K
 
+	if !rv.IsValid() {
+		return k
+	}
+
 	switch rv.Type().Kind() {
 	case reflect.Map, reflect.Interface:
 		m, ok := rv.Interface().(map[string]any)

@@ -12,12 +12,16 @@ require (
 
 require filippo.io/intermediates v0.0.0-20260430031844-579426676a8e
 
-require github.com/tidwall/jsonc v0.3.3
+require (
+	github.com/stretchr/testify v1.11.1
+	github.com/tidwall/jsonc v0.3.3
+)
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/stretchr/testify v1.11.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	golang.org/x/sync v0.20.0 // indirect

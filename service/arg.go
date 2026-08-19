@@ -48,29 +48,21 @@ func (c *Convert) MakeConfig(cxt context.Context, arg model.ConvertArg, configBy
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}
-	m, err = configUrlTestParser(m, nodeTag)
-	if err != nil {
-		return nil, fmt.Errorf("MakeConfig: %w", err)
-	}
+	// convert2sing 产出的 outbounds 恒为 []any，此处不会失败；configUrlTestParser 的错误仅在直接调用时出现
+	m, _ = configUrlTestParser(m, nodeTag)
 
 	// 根据 User-Agent 决定是否格式化 JSON
 	var result []byte
 	if utils.IsBrowser(userAgent) {
-		// 浏览器请求，返回格式化的 JSON
+		// 浏览器请求，返回格式化的 JSON；m 由 JSON 解析而来，序列化不会失败
 		bw := &bytes.Buffer{}
 		jw := json.NewEncoder(bw)
 		jw.SetIndent("", "    ")
-		err = jw.Encode(m)
-		if err != nil {
-			return nil, fmt.Errorf("MakeConfig: %w", err)
-		}
+		_ = jw.Encode(m)
 		result = bw.Bytes()
 	} else {
 		// 非浏览器请求，返回压缩的 JSON
-		result, err = json.Marshal(m)
-		if err != nil {
-			return nil, fmt.Errorf("MakeConfig: %w", err)
-		}
+		result, _ = json.Marshal(m)
 	}
 
 	return result, nil

@@ -36,15 +36,10 @@ type html struct {
 var info html
 
 func init() {
-	var hash string
 	buildInfo, ok := debug.ReadBuildInfo()
+	var hash string
 	if ok {
-		for _, v := range buildInfo.Settings {
-			if v.Key == "vcs.revision" {
-				hash = v.Value
-				break
-			}
-		}
+		hash = vcsRevision(buildInfo.Settings)
 	}
 	info = html{
 		Path: buildInfo.Main.Path,
@@ -55,14 +50,19 @@ func init() {
 	}
 }
 
-func NewApp(h slog.Handler) (http.Handler, error) {
+func vcsRevision(settings []debug.BuildSetting) string {
+	for _, v := range settings {
+		if v.Key == "vcs.revision" {
+			return v.Value
+		}
+	}
+	return ""
+}
+
+func NewApp(h slog.Handler) http.Handler {
 	client := newClient()
 	logger := newSlog(h)
-	mux, err := newMux(client, logger)
-	if err != nil {
-		return nil, err
-	}
-	return mux, nil
+	return newMux(client, logger)
 }
 
 func newClient() *http.Client {
@@ -84,7 +84,7 @@ func newSlog(h slog.Handler) *slog.Logger {
 	return l
 }
 
-func newMux(c *http.Client, l *slog.Logger) (*chi.Mux, error) {
+func newMux(c *http.Client, l *slog.Logger) *chi.Mux {
 	staticFS := lo.Must(fs.Sub(static, "static"))
 	convert := service.NewConvert(c, l)
 	subH := handle.NewHandle(convert, l, staticFS)
@@ -104,7 +104,7 @@ func newMux(c *http.Client, l *slog.Logger) (*chi.Mux, error) {
 	lo.Must(template.New("index").Delims("[[", "]]").Parse(string(FrontendByte))).ExecuteTemplate(bw, "index", info)
 	mux.With(Cache).HandleFunc("/", handle.Frontend(bw.Bytes()))
 
-	return mux, nil
+	return mux
 }
 
 func newStructuredLogger(Logger *slog.Logger) func(next http.Handler) http.Handler {
