@@ -38,6 +38,8 @@ func GetSingBoxVersion(r *http.Request) model.SingBoxVer {
 
 func GetConfig(v model.SingBoxVer, configFs fs.FS) []byte {
 	switch {
+	case v >= model.SING114:
+		return FsReadAll(configFs, "config.json-1.14.0+.template")
 	case v >= model.SING112:
 		return FsReadAll(configFs, "config.json-1.12.0+.template")
 	case v >= model.SING111:

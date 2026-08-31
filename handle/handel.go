@@ -65,7 +65,6 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 	}
 
 	v := utils.GetSingBoxVersion(r)
-	defaultConfig := utils.GetConfig(v, h.configFs)
 
 	a := model.ConvertArg{
 		Sub:            sub,
@@ -120,6 +119,7 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 			}
 			a.Config = b
 		}
+		defaultConfig := utils.GetConfig(v, h.configFs)
 		return h.convert.MakeConfig(ctx, a, defaultConfig, r.UserAgent())
 	}()
 	if err != nil {
