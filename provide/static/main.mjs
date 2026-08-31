@@ -55,7 +55,7 @@ createApp({
 
         (async () => {
             const f = await fetch(
-                "/config/config.json-1.12.0+.template?" + window.version ?? "",
+                "/config/config.json-1.14.0+.template?" + window.version ?? "",
             );
             config.value = await f.text();
             oldConfig = config.value;
