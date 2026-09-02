@@ -7,7 +7,7 @@ require (
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/samber/lo v1.53.0
 	github.com/tidwall/gjson v1.19.0
-	github.com/xmdhs/clash2singbox v0.2.1-0.20260831152518-ef8768019435
+	github.com/xmdhs/clash2singbox v0.2.1-0.20260902075059-95131c3fa562
 )
 
 require filippo.io/intermediates v0.0.0-20260829022435-5727c4d31a4d
