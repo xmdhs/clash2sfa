@@ -13,6 +13,7 @@ func TestGetConfigByVersion(t *testing.T) {
 		"config.json.template":         &fstest.MapFile{Data: []byte("v1.10")},
 		"config.json-1.11.0+.template": &fstest.MapFile{Data: []byte("v1.11")},
 		"config.json-1.12.0+.template": &fstest.MapFile{Data: []byte("v1.12")},
+		"config.json-1.14.0+.template": &fstest.MapFile{Data: []byte("v1.14")},
 	}
 
 	cases := []struct {
@@ -22,8 +23,8 @@ func TestGetConfigByVersion(t *testing.T) {
 		{model.SING110, "v1.10"},
 		{model.SING111, "v1.11"},
 		{model.SING112, "v1.12"},
-		{model.SINGLATEST, "v1.12"},
-		{model.SingBoxVer(9), "v1.12"},
+		{model.SINGLATEST, "v1.14"},
+		{model.SingBoxVer(9), "v1.14"},
 	}
 	for _, c := range cases {
 		assert.Equal(t, []byte(c.want), GetConfig(c.ver, fsys), "ver=%v", c.ver)

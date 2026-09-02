@@ -100,7 +100,7 @@ func TestUrlTestDetourSet(t *testing.T) {
 	}
 	config := []byte(`{"outbounds":[{"type":"selector","tag":"proxy","outbounds":["B"],"detour":"wrapper"}]}`)
 
-	_, newOuts, extTags := urlTestDetourSet(s, config, outs, nil)
+	_, newOuts, extTags := urlTestDetourSet(s, nil, config, outs, nil)
 	require.Len(t, newOuts, 2)
 	assert.Equal(t, "wrapper", newOuts[0]["tag"])
 
@@ -118,7 +118,7 @@ func TestUrlTestDetourSetNoDetourReturnsInput(t *testing.T) {
 	outs := []map[string]any{{"type": "http", "tag": "wrapper"}}
 	config := []byte(`{"outbounds":[{"type":"selector","tag":"proxy","outbounds":["B"]}]}`)
 
-	newS, newOuts, extTags := urlTestDetourSet(s, config, outs, []string{"ext"})
+	newS, newOuts, extTags := urlTestDetourSet(s, nil, config, outs, []string{"ext"})
 	assert.Equal(t, s, newS)
 	assert.Equal(t, outs, newOuts)
 	// 传入的 extTag 被包装为无 Visible 的 TagWithVisible

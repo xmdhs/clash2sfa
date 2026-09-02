@@ -27,7 +27,7 @@ func TestUrlTestDetourSetSingChain(t *testing.T) {
 	}
 	config := []byte(`{"outbounds":[{"type":"selector","tag":"proxy","outbounds":["B"],"detour":"n1"}]}`)
 
-	newS, newOuts, extTags := urlTestDetourSet(s, config, outs, nil)
+	newS, newOuts, extTags := urlTestDetourSet(s, nil, config, outs, nil)
 	require.Len(t, newS, 6)
 	// 忽略节点不参与，ext 的 selector/urltest 不进入 allTags；链尾与链首都生成
 	tailNode, headNode := newS[4], newS[5]
@@ -53,7 +53,7 @@ func TestUrlTestDetourSetAnyChain(t *testing.T) {
 	}
 	config := []byte(`{"outbounds":[{"type":"selector","tag":"proxy","outbounds":["B"],"detour":"w1"}]}`)
 
-	_, newOuts, extTags := urlTestDetourSet(s, config, outs, nil)
+	_, newOuts, extTags := urlTestDetourSet(s, nil, config, outs, nil)
 	require.Len(t, newOuts, len(outs)+2)
 	tail := newOuts[len(newOuts)-1]
 	assert.Equal(t, "B - w1 [proxy]", tail["tag"])

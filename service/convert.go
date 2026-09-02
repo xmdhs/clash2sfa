@@ -48,7 +48,7 @@ func convert2sing(cxt context.Context, client *http.Client, config []byte,
 	outs = append(outs, singList...)
 	extTag = append(extTag, tags...)
 
-	s, outs, extTagWithV := urlTestDetourSet(s, config, outs, extTag)
+	s, outs, extTagWithV := urlTestDetourSet(s, eps, config, outs, extTag)
 
 	nb, err := convert.PatchMap([]byte(config), s, eps, include, exclude, lo.Map(outs, func(item map[string]any, index int) any {
 		return item
@@ -56,7 +56,7 @@ func convert2sing(cxt context.Context, client *http.Client, config []byte,
 	if err != nil {
 		return nil, nil, fmt.Errorf("convert2sing: %w", err)
 	}
-	nodeTag := make([]TagWithVisible, 0, len(s)+len(extTagWithV))
+	nodeTag := make([]TagWithVisible, 0, len(s)+len(eps)+len(extTagWithV))
 
 	for _, v := range s {
 		if v.Ignored {
@@ -65,6 +65,14 @@ func convert2sing(cxt context.Context, client *http.Client, config []byte,
 		nodeTag = append(nodeTag, TagWithVisible{
 			Tag:     v.Tag,
 			Visible: v.Visible,
+		})
+	}
+	for _, ep := range eps {
+		if ep == nil || ep.Tag == "" {
+			continue
+		}
+		nodeTag = append(nodeTag, TagWithVisible{
+			Tag: ep.Tag,
 		})
 	}
 	nodeTag = append(nodeTag, extTagWithV...)
@@ -119,7 +127,7 @@ type TagWithVisible struct {
 	Visible []string
 }
 
-func urlTestDetourSet(s []singbox.SingBoxOut, config []byte, outs []map[string]any, extTag []string) ([]singbox.SingBoxOut, []map[string]any, []TagWithVisible) {
+func urlTestDetourSet(s []singbox.SingBoxOut, eps []*singbox.SingBoxEndpoint, config []byte, outs []map[string]any, extTag []string) ([]singbox.SingBoxOut, []map[string]any, []TagWithVisible) {
 	j := gjson.ParseBytes(config)
 	newSingOut := make([]singbox.SingBoxOut, 0)
 	newAnyOut := make([]map[string]any, 0)
@@ -142,12 +150,18 @@ func urlTestDetourSet(s []singbox.SingBoxOut, config []byte, outs []map[string]a
 		anyMap := lo.SliceToMap(outs, func(item map[string]any) (string, map[string]any) {
 			return utils.AnyGet[string](item, "tag"), item
 		})
-		allTags := make([]string, 0, len(s)+len(outs))
+		allTags := make([]string, 0, len(s)+len(eps)+len(outs))
 		for _, v := range s {
 			if v.Ignored {
 				continue
 			}
 			allTags = append(allTags, v.Tag)
+		}
+		for _, ep := range eps {
+			if ep == nil || ep.Tag == "" {
+				continue
+			}
+			allTags = append(allTags, ep.Tag)
 		}
 		for k, v := range anyMap {
 			t := utils.AnyGet[string](v, "type")
