@@ -13,7 +13,6 @@ import (
 
 	"log/slog"
 
-	"github.com/samber/lo"
 	"github.com/tidwall/jsonc"
 	"github.com/xmdhs/clash2sfa/model"
 	"github.com/xmdhs/clash2sfa/utils"
@@ -88,15 +87,42 @@ func filter(reg string, tags []string, need bool) ([]string, error) {
 	if reg == "" {
 		return tags, nil
 	}
+	// 纯字面模式（无正则元字符）走 strings.Contains 快路径，
+	// 省掉一次 Compile + RE2 执行。无任何跨请求状态。
+	if isLiteralPattern(reg) {
+		out := make([]string, 0, len(tags))
+		for _, item := range tags {
+			if strings.Contains(item, reg) == need {
+				out = append(out, item)
+			}
+		}
+		return out, nil
+	}
 	r, err := regexp.Compile(reg)
 	if err != nil {
 		return nil, fmt.Errorf("filter: %w", err)
 	}
-	tag := lo.Filter(tags, func(item string, index int) bool {
-		has := r.MatchString(item)
-		return has == need
-	})
-	return tag, nil
+	out := make([]string, 0, len(tags))
+	for _, item := range tags {
+		if r.MatchString(item) == need {
+			out = append(out, item)
+		}
+	}
+	return out, nil
+}
+
+// isLiteralPattern 报告模式是否不含正则元字符。
+func isLiteralPattern(s string) bool {
+	if s == "" {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '.', '+', '*', '?', '(', ')', '|', '[', ']', '{', '}', '^', '$', '\\':
+			return false
+		}
+	}
+	return true
 }
 
 func configUrlTestParser(config map[string]any, tags []TagWithVisible) (map[string]any, error) {
@@ -191,5 +217,20 @@ func urlTestParser(outbounds, tags []string) ([]string, error) {
 		return nil, fmt.Errorf("urlTestParser: %w", err)
 	}
 
-	return lo.Union(append(extTag, tags...)), nil
+	// 去重并保序：extTag 在前，tags 在后。避免 append(extTag, tags...) 别名底数组。
+	seen := make(map[string]struct{}, len(extTag)+len(tags))
+	out := make([]string, 0, len(extTag)+len(tags))
+	for _, t := range extTag {
+		if _, ok := seen[t]; !ok {
+			seen[t] = struct{}{}
+			out = append(out, t)
+		}
+	}
+	for _, t := range tags {
+		if _, ok := seen[t]; !ok {
+			seen[t] = struct{}{}
+			out = append(out, t)
+		}
+	}
+	return out, nil
 }

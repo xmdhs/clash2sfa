@@ -8,8 +8,6 @@ import (
 	"maps"
 	"net/http"
 	"slices"
-	"sync"
-	"sync/atomic"
 
 	"log/slog"
 
@@ -196,138 +194,155 @@ func urlTestDetourSet(s []singbox.SingBoxOut, eps []*singbox.SingBoxEndpoint, co
 }
 
 func urlTestDetourSetFromMap(s []singbox.SingBoxOut, eps []*singbox.SingBoxEndpoint, config map[string]any, outs []map[string]any, extTag []string) ([]singbox.SingBoxOut, []map[string]any, []TagWithVisible) {
-	newSingOut := make([]singbox.SingBoxOut, 0)
-	newAnyOut := make([]map[string]any, 0)
-	newExtTag := make([]TagWithVisible, 0)
-
 	list := outboundWithLists(config)
-
-	update := atomic.Bool{}
-
-	type OnceValue struct {
-		singMap map[string]singbox.SingBoxOut
-		anyMap  map[string]map[string]any
-		allTags []string
+	// 快路径：无 detour 时直接返回，避免 per-request Once/Atomic 与建表开销。
+	hasDetour := false
+	for _, value := range list {
+		if detour, _ := value["detour"].(string); detour != "" {
+			hasDetour = true
+			break
+		}
+	}
+	if !hasDetour {
+		return s, outs, tagsWithVisible(extTag)
 	}
 
-	mapF := sync.OnceValue(func() OnceValue {
-		singMap := make(map[string]singbox.SingBoxOut, len(s))
-		for _, item := range s {
-			singMap[item.Tag] = item
+	singMap := make(map[string]singbox.SingBoxOut, len(s))
+	for _, item := range s {
+		singMap[item.Tag] = item
+	}
+	anyMap := make(map[string]map[string]any, len(outs))
+	for _, item := range outs {
+		tag, _ := item["tag"].(string)
+		anyMap[tag] = item
+	}
+	allTags := make([]string, 0, len(s)+len(eps)+len(outs))
+	for _, v := range s {
+		if v.Ignored {
+			continue
 		}
-		anyMap := make(map[string]map[string]any, len(outs))
-		for _, item := range outs {
-			tag, _ := item["tag"].(string)
-			anyMap[tag] = item
+		allTags = append(allTags, v.Tag)
+	}
+	for _, ep := range eps {
+		if ep == nil || ep.Tag == "" {
+			continue
 		}
-		allTags := make([]string, 0, len(s)+len(eps)+len(outs))
-		for _, v := range s {
-			if v.Ignored {
-				continue
-			}
-			allTags = append(allTags, v.Tag)
+		allTags = append(allTags, ep.Tag)
+	}
+	for k, v := range anyMap {
+		t, _ := v["type"].(string)
+		if t == "urltest" || t == "selector" {
+			continue
 		}
-		for _, ep := range eps {
-			if ep == nil || ep.Tag == "" {
-				continue
-			}
-			allTags = append(allTags, ep.Tag)
-		}
-		for k, v := range anyMap {
-			t, _ := v["type"].(string)
-			if t == "urltest" || t == "selector" {
-				continue
-			}
-			allTags = append(allTags, k)
-		}
+		allTags = append(allTags, k)
+	}
 
-		update.Store(true)
-
-		return OnceValue{
-			singMap: singMap,
-			anyMap:  anyMap,
-			allTags: allTags,
-		}
-	})
-
+	// 精确预留：先对每个 detour 算链长与可展开 tag 数，总量一次分配到位，
+	// 避免 cap=0 反复扩容，也避免过度预留的 memclr/GC 开销。
+	type detourPlan struct {
+		tag       string
+		singDList []singbox.SingBoxOut
+		anyDList  []map[string]any
+		notAdd    map[string]struct{}
+		expandN   int
+	}
+	plans := make([]detourPlan, 0, len(list))
+	totalSing := 0
+	totalAny := 0
 	for _, value := range list {
 		detour, _ := value["detour"].(string)
 		tag, _ := value["tag"].(string)
-		if detour != "" {
-			m := mapF()
-			notAdd := map[string]struct{}{}
-
-			tags, singDList := singDetourList(detour, m.singMap)
-			for _, v := range tags {
-				notAdd[v] = struct{}{}
+		if detour == "" {
+			continue
+		}
+		tags, singDList := singDetourList(detour, singMap)
+		notAdd := make(map[string]struct{}, len(tags)+4)
+		for _, v := range tags {
+			notAdd[v] = struct{}{}
+		}
+		tags, anyDList := anyDetourList(detour, anyMap)
+		for _, v := range tags {
+			notAdd[v] = struct{}{}
+		}
+		expandN := 0
+		for _, nowTag := range allTags {
+			if _, ok := notAdd[nowTag]; !ok {
+				expandN++
 			}
-			tags, anyDList := anyDetourList(detour, m.anyMap)
-			for _, v := range tags {
-				notAdd[v] = struct{}{}
+		}
+		plans = append(plans, detourPlan{tag: tag, singDList: singDList, anyDList: anyDList, notAdd: notAdd, expandN: expandN})
+		totalSing += expandN * len(singDList)
+		totalAny += expandN * len(anyDList)
+	}
+	newSingOut := make([]singbox.SingBoxOut, 0, totalSing)
+	newAnyOut := make([]map[string]any, 0, totalAny)
+	newExtTag := make([]TagWithVisible, 0, totalAny)
+
+	for _, plan := range plans {
+		tag := plan.tag
+		singDList := plan.singDList
+		anyDList := plan.anyDList
+		notAdd := plan.notAdd
+		for _, nowTag := range allTags {
+			if _, ok := notAdd[nowTag]; ok {
+				continue
 			}
+			prevTag := ""
+			for i, singDetour := range slices.Backward(singDList) {
 
-			for _, nowTag := range m.allTags {
-				if _, ok := notAdd[nowTag]; ok {
-					continue
+				if prevTag == "" {
+					singDetour.Detour = nowTag
+				} else {
+					singDetour.Detour = prevTag
 				}
-				prevTag := ""
-				for i, singDetour := range slices.Backward(singDList) {
-
-					if prevTag == "" {
-						singDetour.Detour = nowTag
-					} else {
-						singDetour.Detour = prevTag
-					}
-					if i == 0 {
-						singDetour.Visible = []string{tag}
-					} else {
-						singDetour.Visible = []string{"_hide"}
-					}
-					prevTag = fmt.Sprintf("%v - %v [%v]", nowTag, singDetour.Tag, tag)
-					singDetour.Tag = prevTag
-					newSingOut = append(newSingOut, singDetour)
+				if i == 0 {
+					singDetour.Visible = []string{tag}
+				} else {
+					singDetour.Visible = []string{"_hide"}
 				}
-				prevTag = ""
-				for i, a := range slices.Backward(anyDList) {
-					anyDetour := maps.Clone(a)
-					if prevTag == "" {
-						anyDetour["detour"] = nowTag
-					} else {
-						anyDetour["detour"] = prevTag
-					}
-					anyDetourTag, _ := anyDetour["tag"].(string)
-					prevTag = fmt.Sprintf("%v - %v [%v]", nowTag, anyDetourTag, tag)
-					if i == 0 {
-						newExtTag = append(newExtTag, TagWithVisible{
-							Tag:     prevTag,
-							Visible: []string{tag},
-						})
-					} else {
-						newExtTag = append(newExtTag, TagWithVisible{
-							Tag:     prevTag,
-							Visible: []string{"_hide"},
-						})
-					}
-					anyDetour["tag"] = prevTag
-					newAnyOut = append(newAnyOut, anyDetour)
+				prevTag = nowTag + " - " + singDetour.Tag + " [" + tag + "]"
+				singDetour.Tag = prevTag
+				newSingOut = append(newSingOut, singDetour)
+			}
+			prevTag = ""
+			for i, a := range slices.Backward(anyDList) {
+				// maps.Clone 内部批量拷贝，比 make+for range 逐个 mapassign 快
+				//（profile：mapassign_faststr 是热点之一）。
+				anyDetour := maps.Clone(a)
+				if prevTag == "" {
+					anyDetour["detour"] = nowTag
+				} else {
+					anyDetour["detour"] = prevTag
 				}
+				anyDetourTag, _ := anyDetour["tag"].(string)
+				prevTag = nowTag + " - " + anyDetourTag + " [" + tag + "]"
+				if i == 0 {
+					newExtTag = append(newExtTag, TagWithVisible{
+						Tag:     prevTag,
+						Visible: []string{tag},
+					})
+				} else {
+					newExtTag = append(newExtTag, TagWithVisible{
+						Tag:     prevTag,
+						Visible: []string{"_hide"},
+					})
+				}
+				anyDetour["tag"] = prevTag
+				newAnyOut = append(newAnyOut, anyDetour)
 			}
 		}
 	}
 
-	tagV := tagsWithVisible(extTag)
-
-	if update.Load() {
-		return append(s, newSingOut...), append(outs, newAnyOut...), append(tagV, newExtTag...)
-	}
-
-	return s, outs, tagV
+	return append(s, newSingOut...), append(outs, newAnyOut...), append(tagsWithVisible(extTag), newExtTag...)
 }
 
 func singDetourList(detour string, singMap map[string]singbox.SingBoxOut) ([]string, []singbox.SingBoxOut) {
-	tags := []string{}
-	singOut := []singbox.SingBoxOut{}
-	visited := make(map[string]bool)
+	tags := make([]string, 0, 4)
+	singOut := make([]singbox.SingBoxOut, 0, 4)
+	// 链长通常 1~2，用小数组线性判重比 make(map) 便宜。
+	var seen [8]string
+	nseen := 0
+	var overflow map[string]struct{}
 
 	for {
 		s, ok := singMap[detour]
@@ -335,10 +350,31 @@ func singDetourList(detour string, singMap map[string]singbox.SingBoxOut) ([]str
 			break
 		}
 		// 检查循环引用
-		if visited[s.Tag] {
+		dup := false
+		for i := 0; i < nseen && i < len(seen); i++ {
+			if seen[i] == s.Tag {
+				dup = true
+				break
+			}
+		}
+		if !dup && overflow != nil {
+			_, dup = overflow[s.Tag]
+		}
+		if dup {
 			break
 		}
-		visited[s.Tag] = true
+		if nseen < len(seen) {
+			seen[nseen] = s.Tag
+		} else {
+			if overflow == nil {
+				overflow = make(map[string]struct{}, 4)
+				for i := 0; i < len(seen); i++ {
+					overflow[seen[i]] = struct{}{}
+				}
+			}
+			overflow[s.Tag] = struct{}{}
+		}
+		nseen++
 		tags = append(tags, s.Tag)
 		singOut = append(singOut, s)
 		detour = s.Detour
@@ -350,9 +386,11 @@ func singDetourList(detour string, singMap map[string]singbox.SingBoxOut) ([]str
 }
 
 func anyDetourList(detour string, anyMap map[string]map[string]any) ([]string, []map[string]any) {
-	tags := []string{}
-	anyOut := []map[string]any{}
-	visited := make(map[string]bool)
+	tags := make([]string, 0, 4)
+	anyOut := make([]map[string]any, 0, 4)
+	var seen [8]string
+	nseen := 0
+	var overflow map[string]struct{}
 
 	for {
 		a, ok := anyMap[detour]
@@ -361,10 +399,31 @@ func anyDetourList(detour string, anyMap map[string]map[string]any) ([]string, [
 		}
 		tag, _ := a["tag"].(string)
 		// 检查循环引用
-		if visited[tag] {
+		dup := false
+		for i := 0; i < nseen && i < len(seen); i++ {
+			if seen[i] == tag {
+				dup = true
+				break
+			}
+		}
+		if !dup && overflow != nil {
+			_, dup = overflow[tag]
+		}
+		if dup {
 			break
 		}
-		visited[tag] = true
+		if nseen < len(seen) {
+			seen[nseen] = tag
+		} else {
+			if overflow == nil {
+				overflow = make(map[string]struct{}, 4)
+				for i := 0; i < len(seen); i++ {
+					overflow[seen[i]] = struct{}{}
+				}
+			}
+			overflow[tag] = struct{}{}
+		}
+		nseen++
 		tags = append(tags, tag)
 		anyOut = append(anyOut, a)
 		detour, _ = a["detour"].(string)

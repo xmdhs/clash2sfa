@@ -8,5 +8,9 @@ import (
 )
 
 func FsReadAll(f fs.FS, fileName string) []byte {
-	return lo.Must(io.ReadAll(lo.Must(f.Open(fileName))))
+	fh := lo.Must(f.Open(fileName))
+	defer func() {
+		_ = fh.Close()
+	}()
+	return lo.Must(io.ReadAll(fh))
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"encoding/base64"
+	"errors"
 	"io"
 	"io/fs"
 	"net/http"
@@ -93,6 +94,9 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return nil, err
 			}
+			defer func() {
+				_ = f.Close()
+			}()
 			b, err := io.ReadAll(f)
 			if err != nil {
 				return nil, err
@@ -131,6 +135,9 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// maxDecompressedConfig 解压上限，与 HttpGet 的 10MB 对齐，防止 ?config= zip bomb 打爆内存。
+const maxDecompressedConfig = 1000 * 1000 * 10
+
 func zlibDecode(s string) ([]byte, error) {
 	b, err := base64.RawURLEncoding.DecodeString(s)
 	if err != nil {
@@ -140,9 +147,15 @@ func zlibDecode(s string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	b, err = io.ReadAll(r)
+	defer func() {
+		_ = r.Close()
+	}()
+	b, err = io.ReadAll(io.LimitReader(r, maxDecompressedConfig+1))
 	if err != nil {
 		return nil, err
+	}
+	if len(b) > maxDecompressedConfig {
+		return nil, errors.New("zlibDecode: 解压后配置过大")
 	}
 	return b, nil
 }
