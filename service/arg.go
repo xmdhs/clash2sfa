@@ -108,47 +108,63 @@ func configUrlTestParser(config map[string]any, tags []TagWithVisible) (map[stri
 	newOut := make([]any, 0, len(outL))
 
 	for _, value := range outL {
-		outList := utils.AnyGet[[]any](value, "outbounds")
-
+		m, ok := value.(map[string]any)
+		if !ok || m == nil {
+			newOut = append(newOut, value)
+			continue
+		}
+		outList, _ := m["outbounds"].([]any)
 		if len(outList) == 0 {
 			newOut = append(newOut, value)
 			continue
 		}
 
-		tag := utils.AnyGet[string](value, "tag")
-
-		outListS := lo.FilterMap(outList, func(item any, index int) (string, bool) {
+		tag, _ := m["tag"].(string)
+		outListS := make([]string, 0, len(outList))
+		for _, item := range outList {
 			s, ok := item.(string)
-			return s, ok
-		})
-		var tagStr []string
+			if ok {
+				outListS = append(outListS, s)
+			}
+		}
 
-		if tag != "" && utils.AnyGet[string](value, "detour") != "" {
-			tagStr = lo.FilterMap(tags, func(item TagWithVisible, index int) (string, bool) {
-				return item.Tag, len(item.Visible) != 0 && slices.Contains(item.Visible, tag)
-			})
-			m, ok := value.(map[string]any)
-			if ok && m != nil {
+		var tagStr []string
+		if tag != "" {
+			if detour, _ := m["detour"].(string); detour != "" {
+				tagStr = make([]string, 0, len(tags))
+				for _, item := range tags {
+					if len(item.Visible) != 0 && slices.Contains(item.Visible, tag) {
+						tagStr = append(tagStr, item.Tag)
+					}
+				}
 				delete(m, "detour")
+			} else {
+				tagStr = make([]string, 0, len(tags))
+				for _, item := range tags {
+					if len(item.Visible) == 0 {
+						tagStr = append(tagStr, item.Tag)
+					}
+				}
 			}
 		} else {
-			tagStr = lo.FilterMap(tags, func(item TagWithVisible, index int) (string, bool) {
-				return item.Tag, len(item.Visible) == 0
-			})
+			tagStr = make([]string, 0, len(tags))
+			for _, item := range tags {
+				if len(item.Visible) == 0 {
+					tagStr = append(tagStr, item.Tag)
+				}
+			}
 		}
 
 		tl, err := urlTestParser(outListS, tagStr)
 		if err != nil {
 			return nil, fmt.Errorf("configUrlTestParser: %w", err)
 		}
-		if tl == nil {
-			newOut = append(newOut, value)
-			continue
+		if tl != nil {
+			m["outbounds"] = tl
 		}
-		utils.AnySet(&value, tl, "outbounds")
 		newOut = append(newOut, value)
 	}
-	utils.AnySet(&config, newOut, "outbounds")
+	config["outbounds"] = newOut
 	return config, nil
 }
 

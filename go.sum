@@ -33,6 +33,8 @@ github.com/xmdhs/clash2singbox v0.2.1-0.20260902075059-95131c3fa562 h1:vPsnmOjAq
 github.com/xmdhs/clash2singbox v0.2.1-0.20260902075059-95131c3fa562/go.mod h1:17jjRk00xzm7+DUJQE8myPGcN+1TlahQ9SFWtM3NmuA=
 github.com/xmdhs/clash2singbox v0.2.1-0.20260902133352-0a8eafe6d1ed h1:XB4XzkU0+8pydm3BLEt5GTA6EXqkV8iJlVSRQP0IwwA=
 github.com/xmdhs/clash2singbox v0.2.1-0.20260902133352-0a8eafe6d1ed/go.mod h1:17jjRk00xzm7+DUJQE8myPGcN+1TlahQ9SFWtM3NmuA=
+github.com/xmdhs/clash2singbox v0.2.1-0.20260903024605-702d5b66275e h1:3Tp46ZZ2LANXJXpSKijf6qUfUEDRMUUns4zCdqY2j8Y=
+github.com/xmdhs/clash2singbox v0.2.1-0.20260903024605-702d5b66275e/go.mod h1:17jjRk00xzm7+DUJQE8myPGcN+1TlahQ9SFWtM3NmuA=
 go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
 go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
 golang.org/x/sync v0.22.0 h1:SZjpbeLmrCk4xhRSZFNZW5gFUeCeFgjekvI/+gfScek=

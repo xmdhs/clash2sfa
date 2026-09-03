@@ -17,8 +17,8 @@ func GetIP(r *http.Request) (string, error) {
 
 	//Get IP from X-FORWARDED-FOR header
 	ips := r.Header.Get("X-FORWARDED-FOR")
-	splitIps := strings.Split(ips, ",")
-	for _, ip := range splitIps {
+	splitIps := strings.SplitSeq(ips, ",")
+	for ip := range splitIps {
 		netIP := net.ParseIP(ip)
 		if netIP != nil {
 			return ip, nil

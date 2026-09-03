@@ -141,7 +141,7 @@ type StructuredLoggerEntry struct {
 	ctx    context.Context
 }
 
-func (l *StructuredLoggerEntry) Write(status, bytes int, header http.Header, elapsed time.Duration, extra interface{}) {
+func (l *StructuredLoggerEntry) Write(status, bytes int, header http.Header, elapsed time.Duration, extra any) {
 	l.Logger.LogAttrs(l.ctx, slog.LevelDebug, "request complete",
 		slog.Int("resp_status", status),
 		slog.Int("resp_byte_length", bytes),
@@ -149,7 +149,7 @@ func (l *StructuredLoggerEntry) Write(status, bytes int, header http.Header, ela
 	)
 }
 
-func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
+func (l *StructuredLoggerEntry) Panic(v any, stack []byte) {
 	l.Logger.LogAttrs(l.ctx, slog.LevelDebug, "",
 		slog.String("stack", string(stack)),
 		slog.String("panic", fmt.Sprintf("%+v", v)),
