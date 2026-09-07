@@ -181,20 +181,35 @@ func expandDetours(s []singbox.SingBoxOut, eps []*singbox.SingBoxEndpoint, confi
 		return s, outs, tags
 	}
 
-	singByTag := make(map[string]singbox.SingBoxOut, len(s))
-	for _, v := range s {
-		singByTag[v.Tag] = v
-	}
-	anyByTag := make(map[string]map[string]any, len(outs))
-	for _, o := range outs {
-		tag, _ := o["tag"].(string)
-		anyByTag[tag] = o
-	}
 	allTags := selectableTags(s, eps, outs)
+	if len(allTags) == 0 {
+		return s, outs, tags
+	}
+
+	// 索引表延迟到首次需要时再建：无 detour 分组或无可选节点时直接返回，
+	// 避免每次请求都把全量 SingBoxOut（760B/个）复制进堆上 map。
+	var singByTag map[string]singbox.SingBoxOut
+	var anyByTag map[string]map[string]any
 
 	for _, g := range groups {
+		if singByTag == nil {
+			singByTag = make(map[string]singbox.SingBoxOut, len(s))
+			for _, v := range s {
+				singByTag[v.Tag] = v
+			}
+		}
+		if anyByTag == nil {
+			anyByTag = make(map[string]map[string]any, len(outs))
+			for _, o := range outs {
+				tag, _ := o["tag"].(string)
+				anyByTag[tag] = o
+			}
+		}
 		singTags, singChain := detourChain(g.detour, singByTag, singTagDetour)
 		anyTags, anyChain := detourChain(g.detour, anyByTag, anyTagDetour)
+		if len(singChain) == 0 && len(anyChain) == 0 {
+			continue // detour 指向不存在的 tag，无需展开
+		}
 		inChain := make(map[string]bool, len(singTags)+len(anyTags))
 		for _, t := range singTags {
 			inChain[t] = true

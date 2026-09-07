@@ -9,7 +9,7 @@ require (
 	github.com/samber/lo v1.53.0
 	github.com/stretchr/testify v1.12.1
 	github.com/tidwall/jsonc v0.3.3
-	github.com/xmdhs/clash2singbox v0.2.1-0.20260906022658-3ba32b8e7ffe
+	github.com/xmdhs/clash2singbox v0.2.1-0.20260907044029-b9cc86ef2299
 )
 
 require (
