@@ -152,6 +152,43 @@ func TestSubOutFields(t *testing.T) {
 	assert.NotContains(t, rec2.Body.String(), `"dns-out"`)
 }
 
+func TestSubCustomUA(t *testing.T) {
+	var gotUA string
+	client := &http.Client{Transport: rtFunc(func(r *http.Request) (*http.Response, error) {
+		gotUA = r.UserAgent()
+		return &http.Response{
+			StatusCode: 200,
+			Header:     http.Header{},
+			Body: io.NopCloser(bytes.NewReader([]byte(`
+proxies:
+  - name: n1
+    type: vmess
+    server: 1.2.3.4
+    port: "443"
+    uuid: u
+`))),
+		}, nil
+	})}
+	convert := service.NewConvert(client, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	h := NewHandle(convert, slog.New(slog.NewTextHandler(io.Discard, nil)), testConfigFS())
+
+	req := httptest.NewRequest("GET", "/sub?sub=https://example.com/sub&config="+zlibEncode([]byte(`{"outbounds":[]}`))+"&ua=my-custom-ua/1.0", nil)
+	req.Header.Set("User-Agent", "sing-box 1.12.0")
+	rec := httptest.NewRecorder()
+	h.Sub(rec, req)
+	require.Equal(t, 200, rec.Code)
+	assert.Equal(t, "my-custom-ua/1.0", gotUA)
+
+	// 不带 ua 参数时沿用上游默认 UA
+	req2 := httptest.NewRequest("GET", "/sub?sub=https://example.com/sub&config="+zlibEncode([]byte(`{"outbounds":[]}`)), nil)
+	req2.Header.Set("User-Agent", "sing-box 1.12.0")
+	rec2 := httptest.NewRecorder()
+	h.Sub(rec2, req2)
+	require.Equal(t, 200, rec2.Code)
+	assert.NotEmpty(t, gotUA)
+	assert.NotEqual(t, "my-custom-ua/1.0", gotUA)
+}
+
 func TestSubConfigUrlReadError(t *testing.T) {
 	// Open 成功但 Read 失败
 	convert := service.NewConvert(&http.Client{Transport: rtFunc(func(r *http.Request) (*http.Response, error) {

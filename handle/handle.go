@@ -39,6 +39,7 @@ func Frontend(frontendByte []byte) http.HandlerFunc {
 //
 // 参数：sub 订阅地址（必填）；include / exclude 是默认 urltest 的节点过滤正则；
 // config 是经 zlib 压缩再 base64url 编码的模板；configurl 是模板地址，不以 http 开头时视为内置模板文件名；
+// ua 非空时抓取订阅与远程模板改用该 User-Agent；
 // addTag / disableUrlTest 为 "true" 时生效；outFields 为 "1" / "0" 时强制开启 / 关闭 block 与 dns-out 的生成。
 func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -59,6 +60,7 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 		DisableUrlTest: r.FormValue("disableUrlTest") == "true",
 		OutFields:      outFields(r.FormValue("outFields"), ver),
 		Ver:            ver,
+		UserAgent:      r.FormValue("ua"),
 	}
 
 	if arg.ConfigUrl != "" && !strings.HasPrefix(arg.ConfigUrl, "http") {

@@ -14,4 +14,5 @@ type ConvertArg struct {
 	DisableUrlTest bool
 	OutFields      bool
 	Ver            model.SingBoxVer
+	UserAgent      string
 }

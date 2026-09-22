@@ -34,12 +34,41 @@ func NewConvert(c *http.Client, l *slog.Logger) *Convert {
 	return &Convert{c: c, l: l}
 }
 
+// clientForUA 在 ua 非空时返回覆盖 User-Agent 的 client 副本；为空则返回原 client。
+// 上游 httputils 写死了订阅抓取 UA，这里用 Transport 包装覆盖，不改上游签名。
+func (c *Convert) clientForUA(ua string) *http.Client {
+	if ua == "" {
+		return c.c
+	}
+	base := c.c.Transport
+	if base == nil {
+		base = http.DefaultTransport
+	}
+	cp := *c.c
+	cp.Transport = userAgentTransport{base: base, ua: ua}
+	return &cp
+}
+
+type userAgentTransport struct {
+	base http.RoundTripper
+	ua   string
+}
+
+func (t userAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req = req.Clone(req.Context())
+	req.Header.Set("User-Agent", t.ua)
+	return t.base.RoundTrip(req)
+}
+
 // MakeConfig 生成最终的 sing-box 配置。模板优先级：arg.ConfigUrl 指向的远程模板 > arg.Config > configByte（默认模板），
 // 模板支持 JSONC。浏览器请求（按 userAgent 判断）返回缩进格式，客户端请求返回紧凑格式。
+// arg.UserAgent 非空时，抓取订阅与远程模板改用该 UA，否则沿用上游库默认 UA。
 func (c *Convert) MakeConfig(ctx context.Context, arg model.ConvertArg, configByte []byte, userAgent string) ([]byte, error) {
+	cc := *c
+	cc.c = cc.clientForUA(arg.UserAgent)
 	switch {
 	case arg.ConfigUrl != "":
-		b, err := httputils.HttpGet(ctx, c.c, arg.ConfigUrl, maxConfigBytes)
+		b, err := httputils.HttpGet(ctx, cc.c, arg.ConfigUrl, maxConfigBytes)
 		if err != nil {
 			return nil, fmt.Errorf("MakeConfig: %w", err)
 		}
@@ -49,7 +78,7 @@ func (c *Convert) MakeConfig(ctx context.Context, arg model.ConvertArg, configBy
 	}
 	arg.Config = jsonc.ToJSON(arg.Config)
 
-	config, tags, err := c.convert(ctx, arg)
+	config, tags, err := cc.convert(ctx, arg)
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}

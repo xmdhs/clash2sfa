@@ -66,6 +66,7 @@ class Clash2SfaApp extends HTMLElement {
         this.sub = this.querySelector('[data-ref="sub"]');
         this.include = this.querySelector('[data-ref="include"]');
         this.exclude = this.querySelector('[data-ref="exclude"]');
+        this.ua = this.querySelector('[data-ref="ua"]');
         this.config = this.querySelector('[data-ref="config"]');
         this.configurl = this.querySelector('[data-ref="config-url"]');
         this.configType = this.querySelector('[data-ref="config-type"]');
@@ -125,6 +126,7 @@ class Clash2SfaApp extends HTMLElement {
         if (this.configurl.value) subUrl.searchParams.set("configurl", this.configurl.value);
         if (this.include.value) subUrl.searchParams.set("include", this.include.value);
         if (this.exclude.value) subUrl.searchParams.set("exclude", this.exclude.value);
+        if (this.ua.value.trim()) subUrl.searchParams.set("ua", this.ua.value.trim());
         if (this.addTag.checked) subUrl.searchParams.set("addTag", "true");
         if (this.disableUrlTest.checked) subUrl.searchParams.set("disableUrlTest", "true");
         if (this.outFields.value) subUrl.searchParams.set("outFields", this.outFields.value);
@@ -195,6 +197,7 @@ class Clash2SfaApp extends HTMLElement {
             }
             this.include.value = url.searchParams.get("include") || this.include.value;
             this.exclude.value = url.searchParams.get("exclude") || this.exclude.value;
+            this.ua.value = url.searchParams.get("ua") || this.ua.value;
             this.sub.value = url.searchParams.get("sub") || this.sub.value;
             this.addTag.checked = url.searchParams.get("addTag") === "true";
             this.disableUrlTest.checked = url.searchParams.get("disableUrlTest") === "true";
