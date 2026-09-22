@@ -45,8 +45,7 @@ async function encodeBase64Url(value) {
         return value.toBase64({ alphabet: "base64url", omitPadding: true });
     }
     const Base64 = await loadJsBase64();
-    // 第二个参数 true 表示 urlsafe，同时去掉末尾补齐的 =
-    return Base64.fromUint8Array(value, true).replace(/=+$/, "");
+    return Base64.fromUint8Array(value, true);
 }
 
 const CONFIG_TEMPLATES = {
