@@ -18,12 +18,35 @@ async function decompressString(compressedData) {
     return new TextDecoder().decode(await new Response(stream).arrayBuffer());
 }
 
-function decodeBase64Url(value) {
-    return Uint8Array.fromBase64(value, { alphabet: "base64url" });
+// 原生 Uint8Array base64 还是新特性，旧浏览器不支持时才动态加载兜底
+const hasNativeBase64 = typeof Uint8Array.fromBase64 === "function" &&
+    typeof Uint8Array.prototype.toBase64 === "function";
+
+let jsBase64Promise = null;
+function loadJsBase64() {
+    if (!jsBase64Promise) {
+        jsBase64Promise = import("https://cdn.jsdelivr.net/npm/js-base64@3.9.4/+esm").then(
+            (mod) => mod.Base64 ?? mod.default?.Base64 ?? mod.default ?? mod,
+        );
+    }
+    return jsBase64Promise;
 }
 
-function encodeBase64Url(value) {
-    return value.toBase64({ alphabet: "base64url", omitPadding: true });
+async function decodeBase64Url(value) {
+    if (hasNativeBase64) {
+        return Uint8Array.fromBase64(value, { alphabet: "base64url" });
+    }
+    const Base64 = await loadJsBase64();
+    return Base64.toUint8Array(value);
+}
+
+async function encodeBase64Url(value) {
+    if (hasNativeBase64) {
+        return value.toBase64({ alphabet: "base64url", omitPadding: true });
+    }
+    const Base64 = await loadJsBase64();
+    // 第二个参数 true 表示 urlsafe，同时去掉末尾补齐的 =
+    return Base64.fromUint8Array(value, true).replace(/=+$/, "");
 }
 
 const CONFIG_TEMPLATES = {
@@ -98,7 +121,7 @@ class Clash2SfaApp extends HTMLElement {
         subUrl.pathname = "/sub";
         const config = this.config.value !== this.oldConfig ? this.config.value : "";
         if (config !== "") {
-            subUrl.searchParams.set("config", encodeBase64Url(await compressString(config)));
+            subUrl.searchParams.set("config", await encodeBase64Url(await compressString(config)));
         }
         if (this.configurl.value) subUrl.searchParams.set("configurl", this.configurl.value);
         if (this.include.value) subUrl.searchParams.set("include", this.include.value);
@@ -161,7 +184,7 @@ class Clash2SfaApp extends HTMLElement {
             const config = url.searchParams.get("config");
             if (config) {
                 this.configType.value = "2";
-                this.config.value = await decompressString(decodeBase64Url(config));
+                this.config.value = await decompressString(await decodeBase64Url(config));
             }
             const configurl = url.searchParams.get("configurl");
             if (configurl) {
