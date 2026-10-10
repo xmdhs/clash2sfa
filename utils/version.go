@@ -29,7 +29,7 @@ func GetSingBoxVersion(r *http.Request) model.SingBoxVer {
 		return model.SING110
 	case minor == 11:
 		return model.SING111
-	case minor == 12:
+	case minor == 12 || minor == 13:
 		return model.SING112
 	default:
 		return model.SINGLATEST

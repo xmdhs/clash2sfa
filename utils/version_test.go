@@ -35,7 +35,8 @@ func TestGetSingBoxVersion(t *testing.T) {
 		{"sing-box 1.10.7 (linux; amd64)", model.SING110},
 		{"sing-box 1.11.0 (linux; amd64)", model.SING111},
 		{"sing-box 1.12.0 (linux; amd64)", model.SING112},
-		{"sing-box 1.13.0 (linux; amd64)", model.SINGLATEST},
+		{"sing-box 1.13.0 (linux; amd64)", model.SING112},
+		{"sing-box 1.14.0 (linux; amd64)", model.SINGLATEST},
 		// 无版本信息时返回 SINGLATEST
 		{"ClashForAndroid/2.5.12", model.SINGLATEST},
 		{"", model.SINGLATEST},
