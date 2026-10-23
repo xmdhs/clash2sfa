@@ -188,6 +188,8 @@ class Clash2SfaApp extends HTMLElement {
         }
         if (url.pathname !== "/sub") return;
         if (!confirm("解析粘贴的订阅链接？")) return;
+        // 已接管这次粘贴：阻止浏览器再把原链接插进输入框，否则会拼在解析出的订阅地址后面。
+        event.preventDefault();
         try {
             const config = url.searchParams.get("config");
             if (config) {
