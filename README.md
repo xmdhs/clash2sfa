@@ -32,7 +32,6 @@ for (const o of config.outbounds) {
     }
 }
 config.outbounds.push({ type: "selector", tag: "香港", outbounds: hk });
-console.log("节点总数", config.outbounds.length); // 输出到服务端日志
 ```
 
 两种提供方式，直链优先：
@@ -48,6 +47,7 @@ console.log("节点总数", config.outbounds.length); // 输出到服务端日�
 
 - 单次执行 2 秒超时，超时中断；单次执行内存上限 64 MiB
 - `eval` / `new Function` 不可用
+- `console.*` 可以调用，但不产生任何输出
 - 脚本在 detour 展开、分组 `include:` / `exclude:` 解析之后运行，看到的是最终配置
 - 公共部署请谨慎开启：任何能访问 `/sub` 的人都可以执行任意 JS（虽受上面限制约束，仍会消耗 CPU）
 

@@ -227,7 +227,8 @@ func TestPostprocessScriptURLPreferred(t *testing.T) {
 	assert.NotContains(t, string(b), "inline")
 }
 
-func TestPostprocessConsole(t *testing.T) {
+func TestPostprocessConsoleSilent(t *testing.T) {
+	// console 可用但不写日志：脚本不报错，日志里也看不到任何内容
 	var buf bytes.Buffer
 	c := NewConvert(&http.Client{Transport: staticRT{body: []byte(ppSubYAML)}},
 		slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelDebug})))
@@ -235,12 +236,14 @@ func TestPostprocessConsole(t *testing.T) {
 		Sub:    "https://example.com/sub",
 		Config: []byte(`{"outbounds":[]}`),
 		Ver:    cmodel.SINGLATEST,
-		Script: []byte(`console.log("节点数", config.outbounds.length); console.warn("提醒");`),
+		Script: []byte(`console.log("节点数", config.outbounds.length); console.warn("提醒"); console.error("错误");`),
 	}
-	_, err := c.MakeConfig(context.Background(), arg, nil, "sing-box/2.0")
+	b, err := c.MakeConfig(context.Background(), arg, nil, "sing-box/2.0")
 	require.NoError(t, err)
-	assert.Contains(t, buf.String(), "节点数")
-	assert.Contains(t, buf.String(), "提醒")
+	assert.NotContains(t, buf.String(), "节点数")
+	assert.NotContains(t, buf.String(), "提醒")
+	assert.NotContains(t, buf.String(), "错误")
+	assert.NotEmpty(t, b)
 }
 
 func TestPostprocessDisabledWithoutScript(t *testing.T) {

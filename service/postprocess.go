@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Calcium-Ion/moejs"
@@ -29,7 +28,6 @@ var errScriptResult = errors.New("后处理脚本的返回值必须是 JSON 对�
 //
 // 脚本以 (function (config) { ... }) 的形式执行，config 是完整的 sing-box 配置对象，
 // 可以就地修改，也可以返回一个新对象替换它；返回 undefined 表示沿用就地修改后的 config。
-// 脚本可用 console.log 等输出调试信息，会写进服务端日志。
 func (c *Convert) postprocess(ctx context.Context, hc *http.Client, arg model.ConvertArg, config map[string]any) (map[string]any, error) {
 	script, err := c.loadScript(ctx, hc, arg)
 	if err != nil {
@@ -45,7 +43,7 @@ func (c *Convert) postprocess(ctx context.Context, hc *http.Client, arg model.Co
 		DisableDynamicCode: true, // 脚本无需 eval，关掉可缩小攻击面
 		MemoryLimit:        scriptMemoryLimit,
 	})
-	if err := rt.SetGlobal("console", c.console(rt)); err != nil {
+	if err := rt.SetGlobal("console", silentConsole()); err != nil {
 		return nil, fmt.Errorf("postprocess: %w", err)
 	}
 	fnVal, err := rt.RunScript(fn)
@@ -114,28 +112,17 @@ func (c *Convert) loadScript(ctx context.Context, hc *http.Client, arg model.Con
 	return arg.Script, nil
 }
 
-// console 构造脚本可见的 console 对象，输出写进服务端调试日志。
-func (c *Convert) console(rt *moejs.Runtime) map[string]any {
-	realm := rt.Realm()
-	at := func(level string) moejs.NativeFunc {
-		return func(_ *moejs.Realm, _ moejs.Value, args []moejs.Value) (moejs.Value, error) {
-			parts := make([]string, 0, len(args))
-			for _, a := range args {
-				if s, err := realm.ToString(a); err == nil {
-					parts = append(parts, s.GoString())
-				} else {
-					parts = append(parts, a.String())
-				}
-			}
-			c.l.Debug("script console." + level + ": " + strings.Join(parts, " "))
-			return moejs.Undefined(), nil
-		}
-	}
+// silentConsole 提供一组不做任何事的 console 方法，脚本调用它们不会报错，
+// 输出也不写进日志，避免脚本往服务端日志里灌内容。
+func silentConsole() map[string]any {
+	noop := moejs.NativeFunc(func(*moejs.Realm, moejs.Value, []moejs.Value) (moejs.Value, error) {
+		return moejs.Undefined(), nil
+	})
 	return map[string]any{
-		"log":   at("log"),
-		"info":  at("info"),
-		"warn":  at("warn"),
-		"error": at("error"),
-		"debug": at("debug"),
+		"log":   noop,
+		"info":  noop,
+		"warn":  noop,
+		"error": noop,
+		"debug": noop,
 	}
 }
