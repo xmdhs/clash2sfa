@@ -82,8 +82,15 @@ func (c *Convert) MakeConfig(ctx context.Context, arg model.ConvertArg, configBy
 	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
 	}
-	if _, err := configUrlTestParser(config, tags); err != nil {
+	config, err = configUrlTestParser(config, tags)
+	if err != nil {
 		return nil, fmt.Errorf("MakeConfig: %w", err)
+	}
+	if arg.ScriptUrl != "" || len(arg.Script) > 0 {
+		config, err = cc.postprocess(ctx, cc.c, arg, config)
+		if err != nil {
+			return nil, fmt.Errorf("MakeConfig: %w", err)
+		}
 	}
 	out, err := encodeConfig(config, utils.IsBrowser(userAgent))
 	if err != nil {

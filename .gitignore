@@ -1,1 +1,3 @@
 bbolt.db
+.bench/
+.gocache/

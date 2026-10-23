@@ -109,6 +109,46 @@ func TestSubBadConfig(t *testing.T) {
 	assert.Equal(t, 500, rec.Code)
 }
 
+func TestSubWithScript(t *testing.T) {
+	h := newTestHandle(t)
+	script := zlibEncode([]byte(`config.log = { level: "debug" };`))
+	req := httptest.NewRequest("GET", "/sub?sub=https://example.com/sub&config="+zlibEncode([]byte(`{"outbounds":[]}`))+"&script="+script, nil)
+	req.Header.Set("User-Agent", "sing-box 1.12.0")
+	rec := httptest.NewRecorder()
+	h.Sub(rec, req)
+	require.Equal(t, 200, rec.Code)
+	assert.Contains(t, rec.Body.String(), `"level":"debug"`)
+}
+
+func TestSubBadScript(t *testing.T) {
+	h := newTestHandle(t)
+	req := httptest.NewRequest("GET", "/sub?sub=https://example.com/sub&script=not-zlib-garbage", nil)
+	req.Header.Set("User-Agent", "sing-box 1.12.0")
+	rec := httptest.NewRecorder()
+	h.Sub(rec, req)
+	assert.Equal(t, 500, rec.Code)
+}
+
+func TestSubScriptTooLarge(t *testing.T) {
+	h := newTestHandle(t)
+	big := bytes.Repeat([]byte("a"), maxScriptBytes+1)
+	req := httptest.NewRequest("GET", "/sub?sub=https://example.com/sub&script="+zlibEncode(big), nil)
+	req.Header.Set("User-Agent", "sing-box 1.12.0")
+	rec := httptest.NewRecorder()
+	h.Sub(rec, req)
+	assert.Equal(t, 400, rec.Code)
+}
+
+func TestSubScriptError(t *testing.T) {
+	h := newTestHandle(t)
+	req := httptest.NewRequest("GET", "/sub?sub=https://example.com/sub&script="+zlibEncode([]byte(`throw new Error("boom")`)), nil)
+	req.Header.Set("User-Agent", "sing-box 1.12.0")
+	rec := httptest.NewRecorder()
+	h.Sub(rec, req)
+	require.Equal(t, 500, rec.Code)
+	assert.Contains(t, rec.Body.String(), "boom")
+}
+
 func TestSubConfigFromFS(t *testing.T) {
 	// configurl 指向 configFs 内的文件
 	h := newTestHandle(t)

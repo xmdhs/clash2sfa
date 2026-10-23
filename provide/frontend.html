@@ -84,6 +84,14 @@
                 <input data-ref="config-url" hidden />
                 <input data-ref="ua" placeholder="请求订阅的 User-Agent（留空使用默认）" />
             </details>
+            <details>
+                <summary>后处理脚本（JavaScript，可选）</summary>
+                <hr />
+                <span>配置生成后运行，可用 <code>config</code> 读取并就地修改配置，或 <code>return</code> 一个新对象替换它。返回 <code>undefined</code> 时沿用修改后的 <code>config</code>。可用 <code>console.log</code> 输出调试信息（写入服务端日志）。</span>
+                <input data-ref="script-url" placeholder="脚本直链（如 https://example.com/pp.js，优先于下方脚本）" />
+                <textarea data-ref="script" style="resize: none;height: 12em;"
+                    placeholder="// 例：把 hk 节点的名字加上前缀&#10;// for (const o of config.outbounds) {&#10;//   if (typeof o.tag === 'string' &amp;&amp; o.tag.startsWith('hk')) o.tag = '香港 ' + o.tag;&#10;// }"></textarea>
+            </details>
             <br />
             <progress data-ref="in-fetch" hidden></progress>
             <input data-ref="new-sub" type="text" placeholder="" hidden>
