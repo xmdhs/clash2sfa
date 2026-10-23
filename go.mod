@@ -4,6 +4,7 @@ go 1.25.0
 
 require (
 	filippo.io/intermediates v0.0.0-20260829022435-5727c4d31a4d
+	github.com/Calcium-Ion/moejs v0.1.0-alpha.9
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/samber/lo v1.53.0

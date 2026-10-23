@@ -15,4 +15,6 @@ type ConvertArg struct {
 	OutFields      bool
 	Ver            model.SingBoxVer
 	UserAgent      string
+	Script         []byte
+	ScriptUrl      string
 }

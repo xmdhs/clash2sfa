@@ -39,7 +39,8 @@ func Frontend(frontendByte []byte) http.HandlerFunc {
 //
 // 参数：sub 订阅地址（必填）；include / exclude 是默认 urltest 的节点过滤正则；
 // config 是经 zlib 压缩再 base64url 编码的模板；configurl 是模板地址，不以 http 开头时视为内置模板文件名；
-// ua 非空时抓取订阅与远程模板改用该 User-Agent；
+// script 是经同样方式编码的后处理脚本，scripturl 是脚本直链（优先于 script）；
+// ua 非空时抓取订阅、远程模板与脚本改用该 User-Agent；
 // addTag / disableUrlTest 为 "true" 时生效；outFields 为 "1" / "0" 时强制开启 / 关闭 block 与 dns-out 的生成。
 func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -82,6 +83,21 @@ func (h *Handle) Sub(w http.ResponseWriter, r *http.Request) {
 		}
 		arg.Config = b
 	}
+	if script := r.FormValue("script"); script != "" {
+		b, err := zlibDecode(script)
+		if err != nil {
+			h.l.WarnContext(ctx, err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if len(b) > maxScriptBytes {
+			h.l.WarnContext(ctx, "script 过大")
+			http.Error(w, "script 过大", http.StatusBadRequest)
+			return
+		}
+		arg.Script = b
+	}
+	arg.ScriptUrl = r.FormValue("scripturl")
 
 	// 拉取多个订阅可能较慢，放宽 server 级别的 WriteTimeout
 	_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(2 * time.Minute))
@@ -108,6 +124,9 @@ func outFields(param string, ver cmodel.SingBoxVer) bool {
 
 // maxDecompressedConfig 是 config 参数解压后的上限，与订阅抓取的 10MB 对齐，防止 zip bomb。
 const maxDecompressedConfig = 10 * 1000 * 1000
+
+// maxScriptBytes 与 service 侧的脚本上限一致，超出的直接拒绝，省得先解析再失败。
+const maxScriptBytes = 1 << 20
 
 // zlibDecode 解码 config 参数：base64url(zlib(模板))。
 func zlibDecode(s string) ([]byte, error) {

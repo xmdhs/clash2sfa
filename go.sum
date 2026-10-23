@@ -1,5 +1,7 @@
 filippo.io/intermediates v0.0.0-20260829022435-5727c4d31a4d h1:x4Q1cCUY73cDrgWpQwhtJ1cSR7huO8+bovKBWBUmodw=
 filippo.io/intermediates v0.0.0-20260829022435-5727c4d31a4d/go.mod h1:oFwJrtHxYeWR/Lhr/MC2TPSR+BsYpybldbpRKvSjggw=
+github.com/Calcium-Ion/moejs v0.1.0-alpha.9 h1:WY1ebChegtafhPjHSQx3Q+gfnrjqYwHewHuO9k+v7e0=
+github.com/Calcium-Ion/moejs v0.1.0-alpha.9/go.mod h1:9YqHj36EV7pzV/vlEYSw49f3oggeJFdmqcjM9TmDpHs=
 github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=
 github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=

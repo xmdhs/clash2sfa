@@ -69,6 +69,8 @@ class Clash2SfaApp extends HTMLElement {
         this.ua = this.querySelector('[data-ref="ua"]');
         this.config = this.querySelector('[data-ref="config"]');
         this.configurl = this.querySelector('[data-ref="config-url"]');
+        this.script = this.querySelector('[data-ref="script"]');
+        this.scriptUrl = this.querySelector('[data-ref="script-url"]');
         this.configType = this.querySelector('[data-ref="config-type"]');
         this.disableUrlTest = this.querySelector('[data-ref="disable-url-test"]');
         this.addTag = this.querySelector('[data-ref="add-tag"]');
@@ -124,6 +126,11 @@ class Clash2SfaApp extends HTMLElement {
             subUrl.searchParams.set("config", await encodeBase64Url(await compressString(config)));
         }
         if (this.configurl.value) subUrl.searchParams.set("configurl", this.configurl.value);
+        const script = this.script.value.trim();
+        if (script) {
+            subUrl.searchParams.set("script", await encodeBase64Url(await compressString(script)));
+        }
+        if (this.scriptUrl.value.trim()) subUrl.searchParams.set("scripturl", this.scriptUrl.value.trim());
         if (this.include.value) subUrl.searchParams.set("include", this.include.value);
         if (this.exclude.value) subUrl.searchParams.set("exclude", this.exclude.value);
         if (this.ua.value.trim()) subUrl.searchParams.set("ua", this.ua.value.trim());
@@ -195,6 +202,11 @@ class Clash2SfaApp extends HTMLElement {
             } else {
                 this.configurl.value = "";
             }
+            const script = url.searchParams.get("script");
+            if (script) {
+                this.script.value = await decompressString(await decodeBase64Url(script));
+            }
+            this.scriptUrl.value = url.searchParams.get("scripturl") || this.scriptUrl.value;
             this.include.value = url.searchParams.get("include") || this.include.value;
             this.exclude.value = url.searchParams.get("exclude") || this.exclude.value;
             this.ua.value = url.searchParams.get("ua") || this.ua.value;
