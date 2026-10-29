@@ -6,7 +6,7 @@ require (
 	filippo.io/intermediates v0.0.0-20260829022435-5727c4d31a4d
 	github.com/Calcium-Ion/moejs v0.1.0-alpha.9
 	github.com/Masterminds/semver/v3 v3.5.0
-	github.com/go-chi/chi/v5 v5.3.2
+	github.com/go-chi/chi/v5 v5.4.0
 	github.com/samber/lo v1.53.0
 	github.com/stretchr/testify v1.12.1
 	github.com/tidwall/jsonc v0.3.3
